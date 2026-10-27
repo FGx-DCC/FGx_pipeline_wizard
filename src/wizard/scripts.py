@@ -1,6 +1,43 @@
 """Shell scripts present in the pipeline."""
 
 from dataclasses import dataclass
+from typing import Any
+from urllib.parse import ParseResult
+
+URL = ParseResult
+
+
+@dataclass
+class Parameter:
+    """Represents a configuration parameter (such as a file path)."""
+
+    """The name of the parameter (to put into the config file)."""
+    name: str
+
+    """The type expected for the parameter."""
+    parameter_type: type
+
+    """The default value used for the parameter."""
+    default: Any
+
+
+@dataclass
+class Dependency:
+    """Represents a script dependency (required prerequisite files).
+
+    Note that this does not include files from previous steps in a pipeline. It
+    purely accounts for external files such as refrence fastas.
+
+    """
+
+    """The name of the dependency."""
+    name: str
+
+    """An explanation of what the dependency is for."""
+    description: str
+
+    """Where to retrieve the file from."""
+    url: URL
 
 
 @dataclass
@@ -14,10 +51,10 @@ class Script:
     purpose: str
 
     """Configuration parameters needed."""
-    parameters: list[str]
+    parameters: list[Parameter]
 
     """File dependencies (for example, a reference genome)."""
-    dependencies: list[str]
+    dependencies: list[Dependency]
 
 
 scripts = [
