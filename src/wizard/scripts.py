@@ -83,7 +83,7 @@ RRNA_REFERENCE = Dependency(
 OUT_DIRECTORY = Parameter("outdir", Path, Path("."))
 KEEP_TEMP = Parameter("keep_temp_files", bool, False)
 
-PIPELINE_SCRIPTS = [
+ALL_PIPELINE_SCRIPTS = [
     Script(
         "00_splitRawFile.sh",
         "Split multiplexed fastq file into separate files, for parallelised demultiplexing.",
