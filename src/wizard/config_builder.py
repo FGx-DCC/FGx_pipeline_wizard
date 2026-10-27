@@ -30,7 +30,14 @@ class ConfigBuilder:
     def add_parameter_value_pair(
         self, parameter: Parameter, value: Any
     ) -> None:
-        """Append config parameter to configuration file contents."""
+        """Append config parameter to configuration file contents.
+
+        Note:
+            Values are not checked, this is just a writer. The caller should
+            validate that values are sensible/correct (for example, checking
+            that file paths exist/can be written to).
+
+        """
         if parameter.name in self._parameters:
             return
 
