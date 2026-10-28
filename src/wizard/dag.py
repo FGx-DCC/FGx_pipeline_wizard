@@ -312,3 +312,6 @@ class Dag:
             },
             global_parameters=self._global_parameters,
         )
+
+    def __repr__(self) -> str:
+        return f"{self._name}: {self._description}"
