@@ -265,8 +265,8 @@ class Dag:
             for row in rows:
                 print(row.center(canvas_width))
 
-    def prune(self, *names: str) -> Dag:
-        """Return a copy of the DAG without the given steps or dependents.
+    def prune(self, script_name: str) -> Dag:
+        """Return a copy of the DAG without the given script or dependents.
 
         Any step that depends (directly or transitively) on a removed step
         is also removed, since it could no longer run.
@@ -275,9 +275,8 @@ class Dag:
             ValueError: If a name is not a step in the pipeline
 
         """
-        unknown = set(names) - self._scripts.keys()
-        if unknown:
-            raise ValueError(f"Unknown steps: {sorted(unknown)}")
+        if script_name not in self.script_names:
+            raise ValueError("This is not a script in the pipeline")
 
         # Invert the dependency mapping to be able to walk downwards rather
         # than upwards
@@ -289,7 +288,7 @@ class Dag:
                 dependents[dependency].add(node)
 
         removed: set[str] = set()
-        to_visit = list(names)
+        to_visit = [script_name]
         while to_visit:
             node = to_visit.pop()
             if node in removed:
