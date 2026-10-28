@@ -56,7 +56,7 @@ class Dag:
     ):
         """Initialise the instance."""
         self._name = name
-        self._decription = description
+        self._description = description
         self._scripts = scripts
         self._script_dependencies = script_dependencies
 
@@ -246,7 +246,7 @@ class Dag:
         canvas_width = max(len(row) for rows in blocks for row in rows)
         print(self._name.center(canvas_width))
         print("-" * canvas_width)
-        print(self._decription.center(canvas_width))
+        print(self._description.center(canvas_width))
         print("═" * canvas_width)
         for index, rows in enumerate(blocks):
             if index:
