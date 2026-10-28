@@ -130,7 +130,10 @@ class Dag:
         """
         scripts: dict[str, Script] = {}
         script_dependencies: dict[str, set[str]] = {}
-        aliases: dict[str, set[str]] = {}  # nested dag -> leaf nodes
+
+        # This maps nested dags to their leaf nodes (so these can be used as
+        # dependencies for steps dependent on the dag as a whole)
+        aliases: dict[str, set[str]] = {}
 
         for name, spec in dag_data.get("steps", {}).items():
             after = set(spec.get("after", []))
