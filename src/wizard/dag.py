@@ -96,6 +96,26 @@ class Dag:
             data = tomllib.load(dag_toml)
         return cls._from_dict(data, script_directory, dag_directory)
 
+    @cached_property
+    def steps(self) -> list[Step]:
+        """Layers of scripts that can be ran in parallel.
+
+        Raises:
+            RuntimeError: If there is a cycle in the pipeline
+
+        """
+        sorter = TopologicalSorter(self._dependencies)
+        try:
+            sorter.prepare()
+        except CycleError as exc:
+            raise RuntimeError("There is a cycle in your pipeline") from exc
+        layers: list[Step] = []
+        while sorter.is_active():
+            ready = sorter.get_ready()
+            layers.append(tuple(self._scripts[n] for n in sorted(ready)))
+            sorter.done(*ready)
+        return layers
+
     @classmethod
     def _from_dict(
         cls, dag_data: dict, script_directory: Path, dag_directory: Path
@@ -186,23 +206,3 @@ class Dag:
             scripts,
             script_dependencies,
         )
-
-    @cached_property
-    def steps(self) -> list[Step]:
-        """Layers of scripts that can be ran in parallel.
-
-        Raises:
-            RuntimeError: If there is a cycle in the pipeline
-
-        """
-        sorter = TopologicalSorter(self._dependencies)
-        try:
-            sorter.prepare()
-        except CycleError as exc:
-            raise RuntimeError("There is a cycle in your pipeline") from exc
-        layers: list[Step] = []
-        while sorter.is_active():
-            ready = sorter.get_ready()
-            layers.append(tuple(self._scripts[n] for n in sorted(ready)))
-            sorter.done(*ready)
-        return layers
