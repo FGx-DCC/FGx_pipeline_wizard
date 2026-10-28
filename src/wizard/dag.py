@@ -53,12 +53,14 @@ class Dag:
         description: str,
         scripts: dict[str, Script],
         script_dependencies: dict[str, set[str]],
+        global_parameters: list[Parameter],
     ):
         """Initialise the instance."""
         self._name = name
         self._description = description
         self._scripts = scripts
         self._script_dependencies = script_dependencies
+        self._global_parameters = global_parameters
 
     @classmethod
     def from_toml(
@@ -134,6 +136,8 @@ class Dag:
         # This maps nested dags to their leaf nodes (so these can be used as
         # dependencies for steps dependent on the dag as a whole)
         aliases: dict[str, set[str]] = {}
+
+        global_parameters = dag_data.get("parameters", [])
 
         for name, specification in dag_data.get("steps", {}).items():
             after = set(specification.get("after", []))
@@ -214,6 +218,7 @@ class Dag:
             description=dag_data.get("description", ""),
             scripts=scripts,
             script_dependencies=script_dependencies,
+            global_parameters=global_parameters,
         )
 
     def print_diagram(self) -> None:
@@ -300,4 +305,5 @@ class Dag:
                 for node, dependencies in self._script_dependencies.items()
                 if node not in removed
             },
+            global_parameters=self._global_parameters,
         )
