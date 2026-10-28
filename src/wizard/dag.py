@@ -58,7 +58,7 @@ class Dag:
         self._name = name
         self._decription = decription
         self._scripts = scripts
-        self._dependencies = script_dependencies
+        self._script_dependencies = script_dependencies
 
     @classmethod
     def from_toml(
@@ -104,7 +104,7 @@ class Dag:
             RuntimeError: If there is a cycle in the pipeline
 
         """
-        sorter = TopologicalSorter(self._dependencies)
+        sorter = TopologicalSorter(self._script_dependencies)
         try:
             sorter.prepare()
         except CycleError as exc:
@@ -146,10 +146,13 @@ class Dag:
                 prefix = f"{name}_"
                 depended_on = {
                     dependency
-                    for dependencies in sub._dependencies.values()
+                    for dependencies in sub._script_dependencies.values()
                     for dependency in dependencies
                 }
-                for node, node_dependencies in sub._dependencies.items():
+                for (
+                    node,
+                    node_dependencies,
+                ) in sub._script_dependencies.items():
                     new_node = prefix + node
                     scripts[new_node] = replace(
                         sub._scripts[node], name=new_node
@@ -164,7 +167,7 @@ class Dag:
                     )
                 aliases[name] = {
                     prefix + n
-                    for n in sub._dependencies
+                    for n in sub._script_dependencies
                     if n not in depended_on
                 }
                 continue
