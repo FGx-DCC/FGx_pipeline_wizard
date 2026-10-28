@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Any
 
-from wizard.scripts import Parameter
+from wizard.dag import Parameter
 
 
 class ConfigBuilder:
@@ -28,7 +28,7 @@ class ConfigBuilder:
         self._contents = []
 
     def add_parameter_value_pair(
-        self, parameter: Parameter, value: Any
+        self, parameter: Parameter, value: str | int
     ) -> None:
         """Append config parameter to configuration file contents.
 
