@@ -215,3 +215,42 @@ class Dag:
             scripts=scripts,
             script_dependencies=script_dependencies,
         )
+
+    def print_diagram(self) -> None:
+        """Print the pipeline top-down as layers of boxes."""
+
+        def box(script: Script) -> list[str]:
+            dependencies = sorted(self._script_dependencies[script.name])
+            lines = [script.name]
+            if dependencies:
+                lines.append("after: " + ", ".join(dependencies))
+            inner = max(len(line) for line in lines)
+            return [
+                "┌" + "─" * (inner + 2) + "┐",
+                *(f"│ {line.ljust(inner)} │" for line in lines),
+                "└" + "─" * (inner + 2) + "┘",
+            ]
+
+        blocks: list[list[str]] = []
+        for layer in self.steps:
+            boxes = [box(script) for script in layer]
+            height = max(len(b) for b in boxes)
+            rows = [
+                "   ".join(
+                    b[i] if i < len(b) else " " * len(b[0]) for b in boxes
+                )
+                for i in range(height)
+            ]
+            blocks.append(rows)
+
+        canvas_width = max(len(row) for rows in blocks for row in rows)
+        print(self._name.center(canvas_width))
+        print("-" * canvas_width)
+        print(self._decription.center(canvas_width))
+        print("═" * canvas_width)
+        for index, rows in enumerate(blocks):
+            if index:
+                print("│".center(canvas_width))
+                print("▼".center(canvas_width))
+            for row in rows:
+                print(row.center(canvas_width))
