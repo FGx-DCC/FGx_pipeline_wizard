@@ -50,13 +50,13 @@ class Dag:
     def __init__(
         self,
         name: str,
-        decription: str,
+        description: str,
         scripts: dict[str, Script],
         script_dependencies: dict[str, set[str]],
     ):
         """Initialise the instance."""
         self._name = name
-        self._decription = decription
+        self._decription = description
         self._scripts = scripts
         self._script_dependencies = script_dependencies
 
@@ -135,13 +135,13 @@ class Dag:
         # dependencies for steps dependent on the dag as a whole)
         aliases: dict[str, set[str]] = {}
 
-        for name, spec in dag_data.get("steps", {}).items():
-            after = set(spec.get("after", []))
+        for name, specification in dag_data.get("steps", {}).items():
+            after = set(specification.get("after", []))
 
-            if "dag" in spec:
+            if "dag" in specification:
                 # Flatten nested DAG
-                sub = cls.from_toml(
-                    dag_directory / spec["dag"],
+                sub_dag = cls.from_toml(
+                    dag_directory / specification["dag"],
                     script_directory,
                     dag_directory,
                 )
@@ -149,18 +149,18 @@ class Dag:
                 prefix = f"{name}_"
                 depended_on = {
                     dependency
-                    for dependencies in sub._script_dependencies.values()
+                    for dependencies in sub_dag._script_dependencies.values()
                     for dependency in dependencies
                 }
                 for (
                     node,
                     node_dependencies,
-                ) in sub._script_dependencies.items():
-                    new_node = prefix + node
-                    scripts[new_node] = replace(
-                        sub._scripts[node], name=new_node
+                ) in sub_dag._script_dependencies.items():
+                    prefixed_node = prefix + node
+                    scripts[prefixed_node] = replace(
+                        sub_dag._scripts[node], name=prefixed_node
                     )
-                    script_dependencies[new_node] = (
+                    script_dependencies[prefixed_node] = (
                         {
                             prefix + dependency
                             for dependency in node_dependencies
@@ -168,24 +168,27 @@ class Dag:
                         if node_dependencies
                         else set(after)
                     )
+
                 aliases[name] = {
-                    prefix + n
-                    for n in sub._script_dependencies
-                    if n not in depended_on
+                    prefix + node
+                    for node in sub_dag._script_dependencies
+                    if node not in depended_on
                 }
                 continue
 
-            if "path" not in spec:
+            if "path" not in specification:
                 raise ValueError(f"Step {name!r} needs a 'path' or a 'dag'")
 
             scripts[name] = Script(
                 name=name,
-                path=script_directory / spec["path"],
-                description=spec.get("description", ""),
-                requires=spec.get("requires", []),
+                path=script_directory / specification["path"],
+                description=specification.get("description", ""),
+                requires=specification.get("requires", []),
                 parameters={
                     name: Parameter(name, value)
-                    for name, value in spec.get("parameters", {}).items()
+                    for name, value in specification.get(
+                        "parameters", {}
+                    ).items()
                 },
             )
             script_dependencies[name] = after
@@ -207,8 +210,8 @@ class Dag:
             )
 
         return cls(
-            dag_data.get("name", "unnamed"),
-            dag_data.get("description", ""),
-            scripts,
-            script_dependencies,
+            name=dag_data.get("name", "unnamed_pipeline"),
+            description=dag_data.get("description", ""),
+            scripts=scripts,
+            script_dependencies=script_dependencies,
         )
