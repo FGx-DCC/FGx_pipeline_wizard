@@ -1,7 +1,7 @@
 """Main entry point for config wizard"""
 
-from enum import Enum, auto
 import sys
+from enum import Enum, auto
 from pathlib import Path
 
 from wizard.wizard import ask_bool, exit_with_message
@@ -17,18 +17,25 @@ def main(
     # Preliminary checks
     # //
     cleanup_previous_run(config_file, run_script)
-    if not (scripts_directory.is_dir() and scripts_directory.exists()):
+    validate_directory_existence(scripts_directory, "Scripts directory")
+    validate_directory_existence(pipelines_directory, "Pipelines directory")
+
+
+def validate_directory_existence(directory_path: Path, directory_name: str):
+    """Check a path is a valid directory and exists.
+
+    This is quite weak, as of course, the expectant files may not exist within
+    said directories. Another part of the tool needs to check that the
+    expectant files are within this directory.
+
+    If the directory doesn't exist, the tool exits immediately.
+
+    """
+    if not (directory_path.is_dir() and directory_path.exists()):
         exit_with_message(f"""
-            Scripts directory not found at {scripts_directory}, please raise
-            an issue here:
-                https://github.com/FGx-DCC/ONT_processing_pipeline/issues
-            """)
-    if not (pipelines_directory.is_dir() and pipelines_directory.exists()):
-        exit_with_message(f"""
-            Pipeline directory not found at {pipelines_directory}, please raise
-            an issue here:
-                https://github.com/FGx-DCC/ONT_processing_pipeline/issues
-            """)
+            {directory_name} was not found at {directory_path}, please raise
+            an issue.
+        """)
 
 
 class FileDeletionResult(Enum):
