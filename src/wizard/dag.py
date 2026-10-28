@@ -78,18 +78,26 @@ class Dag:
             after = ["clean"]
 
             [steps.report]
-            dag = "report.toml"
+            dag = "report.toml" # report.toml looks like this one
             after = ["write"]
 
         """
         with path.open("rb") as dag_toml:
             data = tomllib.load(dag_toml)
-        return cls.from_dict(data, script_directory, dag_directory)
+        return cls._from_dict(data, script_directory, dag_directory)
 
     @classmethod
-    def from_dict(
+    def _from_dict(
         cls, dag_data: dict, script_directory: Path, dag_directory: Path
     ) -> Dag:
+        """Construct a DAG from a dictionary.
+
+        Raises:
+            ValueError:
+                - If a step has no associated dag or script path
+                - If a step has unknown dependencies
+
+        """
         scripts: dict[str, Script] = {}
         script_dependencies: dict[str, set[str]] = {}
         aliases: dict[str, set[str]] = {}  # nested dag -> leaf nodes
@@ -168,7 +176,12 @@ class Dag:
 
     @cached_property
     def steps(self) -> list[Step]:
-        """Layers of scripts that can be ran in parallel."""
+        """Layers of scripts that can be ran in parallel.
+
+        Raises:
+            RuntimeError: If there is a cycle in the pipeline
+
+        """
         sorter = TopologicalSorter(self._dependencies)
         try:
             sorter.prepare()
