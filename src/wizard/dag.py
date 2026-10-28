@@ -42,14 +42,13 @@ class Dag:
         name: str,
         decription: str,
         scripts: dict[str, Script],
-        dependencies: dict[str, set[str]],
+        script_dependencies: dict[str, set[str]],
     ):
         """Initialise the instance."""
         self._name = name
         self._decription = decription
         self._scripts = scripts
-        self._dependencies = dependencies
-        self._steps = []
+        self._dependencies = script_dependencies
 
     @classmethod
     def from_toml(
