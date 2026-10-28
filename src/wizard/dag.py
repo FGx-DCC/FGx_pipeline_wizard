@@ -315,3 +315,7 @@ class Dag:
 
     def __repr__(self) -> str:
         return f"{self._name}: {self._description}"
+
+    @property
+    def script_names(self) -> list[str]:
+        return list(self._scripts.keys())
