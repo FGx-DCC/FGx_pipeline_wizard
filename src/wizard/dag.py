@@ -18,7 +18,7 @@ class Parameter:
     name: str
 
     """The default value used for the parameter."""
-    default: str | int
+    default: str | int | list[str] | list[int]
 
 
 @dataclass
@@ -73,6 +73,10 @@ class Dag:
             name = "Test Pipeline"
             description = "A test pipeline with read, clean and write steps"
 
+            [parameters]
+            out_directory = "/path/to/output/directory/"
+            keep_temporary = false
+
             [steps.read]
             path = "read.sh"
             description = "Read the data from a file and convert to pandas"
@@ -84,6 +88,7 @@ class Dag:
             after = ["read"]
             [steps.clean.parameters]
             max_distance = 5
+            tool_version = ["v1","v2"]
 
             [steps.write]
             path = "write.sh"
