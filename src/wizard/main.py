@@ -6,7 +6,12 @@ from pathlib import Path
 from wizard.wizard import ask_bool, exit_with_message
 
 
-def main(scripts_directory: Path, config_file: Path, run_script: Path) -> None:
+def main(
+    scripts_directory: Path,
+    pipelines_directory: Path,
+    config_file: Path,
+    run_script: Path,
+) -> None:
     # \\
     # Preliminary checks
     # //
@@ -14,6 +19,12 @@ def main(scripts_directory: Path, config_file: Path, run_script: Path) -> None:
     if not (scripts_directory.is_dir() and scripts_directory.exists()):
         exit_with_message(f"""
             Scripts directory not found at {scripts_directory}, please raise
+            an issue here:
+                https://github.com/FGx-DCC/ONT_processing_pipeline/issues
+            """)
+    if not (pipelines_directory.is_dir() and pipelines_directory.exists()):
+        exit_with_message(f"""
+            Pipeline directory not found at {pipelines_directory}, please raise
             an issue here:
                 https://github.com/FGx-DCC/ONT_processing_pipeline/issues
             """)
@@ -41,9 +52,12 @@ def handle_previous_run(config_file: Path, run_script: Path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print(f"Usage: {__file__} scripts_directory out_config.txt run.sh")
+    if len(sys.argv) != 5:
+        print(
+            f"Usage: {__file__} scripts_directory pipelines_directory out_config.txt run.sh"
+        )
     scripts_directory = Path(sys.argv[1])
-    config_file = Path(sys.argv[2])
-    run_script = Path(sys.argv[3])
-    main(scripts_directory, config_file, run_script)
+    pipelines_directory = Path(sys.argv[2])
+    config_file = Path(sys.argv[3])
+    run_script = Path(sys.argv[4])
+    main(scripts_directory, pipelines_directory, config_file, run_script)
