@@ -4,7 +4,8 @@ import sys
 from enum import Enum, auto
 from pathlib import Path
 
-from wizard.wizard import ask_bool, exit_with_message
+from wizard.dag import Dag
+from wizard.wizard import ask, ask_bool, exit_with_message
 
 
 def main(
@@ -19,6 +20,40 @@ def main(
     cleanup_previous_run(config_file, run_script)
     validate_directory_existence(scripts_directory, "Scripts directory")
     validate_directory_existence(pipelines_directory, "Pipelines directory")
+
+    # \\
+    # Obtain the pipeline the user wants to build from
+    # //
+    pipelines = list(pipelines_directory.glob("*.toml"))
+    if pipelines == []:
+        exit_with_message(f"""
+            No pipelines could be found in {pipelines_directory}
+            Please raise an issue
+        """)
+
+    try:
+        parsed_pipelines = [
+            Dag.from_toml(pipeline, scripts_directory, pipelines_directory)
+            for pipeline in pipelines
+        ]
+    except (ValueError, RuntimeError) as exc:
+        exit_with_message(f"Failed to parse a pipeline: {exc}")
+
+    chosen_pipeline: Dag | None = None
+    while chosen_pipeline is None:
+        pipeline_to_preview = parsed_pipelines[
+            ask(
+                """
+            Which pipeline would you like to build from?
+            (after selecting, a visual representation will be printed)
+            To exit, press 'CTRL+D' (if you don't want any pipeline)
+            """,
+                choices=[f"{pipeline!r}" for pipeline in parsed_pipelines],
+            )
+        ]
+        pipeline_to_preview.print_diagram()
+        if ask_bool("Would you like to use this pipeline?"):
+            chosen_pipeline = pipeline_to_preview
 
 
 def validate_directory_existence(directory_path: Path, directory_name: str):
