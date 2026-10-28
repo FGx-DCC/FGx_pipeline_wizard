@@ -5,7 +5,7 @@ from enum import Enum, auto
 from pathlib import Path
 
 from wizard.dag import Dag
-from wizard.wizard import ask, ask_bool, exit_with_message
+from wizard.wizard import ask, ask_bool, exit_with_message, tell
 
 
 def main(
@@ -54,6 +54,44 @@ def main(
         pipeline_to_preview.print_diagram()
         if ask_bool("Would you like to use this pipeline?"):
             chosen_pipeline = pipeline_to_preview
+
+    # \\
+    # Alter pipeline to their needs
+    # //
+    unaltered_pipeline = chosen_pipeline
+    while True:
+        options = chosen_pipeline.script_names + [
+            "Preview",
+            "Restart",
+            "Finished",
+        ]
+        option_chosen = options[
+            ask(
+                """
+                Please pick a step (or select 'Finished' if there are none) to
+                remove from the pipeline. Any step you pick will also remove
+                any dependent steps.
+
+                If you messed up (accidently removed a step you didn't want to)
+                use the 'Restart' option.
+
+                If you just want to start the pipeline halfway through, that
+                option will come later.
+
+                To view the current state of the pipeline, select 'Preview'
+                """,
+                choices=options,
+            )
+        ]
+        if option_chosen == "Finished":
+            break
+        elif option_chosen == "Preview":
+            chosen_pipeline.print_diagram()
+        elif chosen_pipeline == "Restart":
+            tell("Resetting back to unaltered pipeline...")
+            chosen_pipeline = unaltered_pipeline
+        else:
+            chosen_pipeline.prune(option_chosen)
 
 
 def validate_directory_existence(directory_path: Path, directory_name: str):
