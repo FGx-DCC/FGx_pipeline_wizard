@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from wizard.scripts import Script
+from wizard.dag import Step
 
 
 class RunBuilder:
@@ -29,13 +29,13 @@ class RunBuilder:
         self._contents.append(f"source {self._config_path}")
         self._contents.append("")
 
-    def add_pipeline_step(self, scripts: list[Script]) -> None:
+    def add_pipeline_step(self, step: Step) -> None:
         """Append scripts to run in parallel for next pipeline step."""
         self._contents.append(f"## Step {self._step_counter}")
         self._contents.append("")
 
         jobids = []
-        for idx, script in enumerate(scripts, 1):
+        for idx, script in enumerate(step, 1):
             jobid_variable = f"jobid_{self._step_counter}_{idx}"
             jobids.append(jobid_variable)
             full_script_path = self._scripts_directory / script.path
