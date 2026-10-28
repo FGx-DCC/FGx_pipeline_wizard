@@ -38,7 +38,7 @@ class Script:
     parameters: dict[str, Parameter] = field(default_factory=dict)
 
     """File dependencies (for example, a reference genome)."""
-    requires: tuple[str, ...] = ()
+    requires: list[str] = field(default_factory=list)
 
 
 Step = tuple[Script, ...]
@@ -156,7 +156,7 @@ class Dag:
                 name=name,
                 path=script_directory / spec["path"],
                 description=spec.get("description", ""),
-                requires=tuple(spec.get("requires", [])),
+                requires=spec.get("requires", []),
                 parameters={
                     name: Parameter(name, value)
                     for name, value in spec.get("parameters", {}).items()
