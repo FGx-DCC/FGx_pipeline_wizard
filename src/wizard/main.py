@@ -93,6 +93,21 @@ def main(
         else:
             chosen_pipeline.prune(option_chosen)
 
+    pipeline_steps = chosen_pipeline.steps
+    standard_start = ask_bool(
+        "Would you like to start the pipeline from step 1?"
+    )
+    if not standard_start:
+        # ±1 due to 1/0 based indexing switch
+        start = (
+            ask(
+                "What step would you like to start from?",
+                choices=[f"Step {i}" for i in range(1, len(pipeline_steps))],
+            )
+            - 1
+        )
+        pipeline_steps = pipeline_steps[start:]
+
 
 def validate_directory_existence(directory_path: Path, directory_name: str):
     """Check a path is a valid directory and exists.
