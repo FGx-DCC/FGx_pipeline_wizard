@@ -6,9 +6,19 @@ from dataclasses import dataclass, field, replace
 from functools import cached_property
 from graphlib import CycleError, TopologicalSorter
 from pathlib import Path
-from typing import Any
 
 import tomllib
+
+
+@dataclass
+class Parameter:
+    """Represents a configuration parameter (such as a file path)."""
+
+    """The name of the parameter (to put into the config file)."""
+    name: str
+
+    """The default value used for the parameter."""
+    default: str | int
 
 
 @dataclass
@@ -25,7 +35,7 @@ class Script:
     description: str
 
     """Configuration parameters needed."""
-    parameters: dict[str, Any] = field(default_factory=dict)
+    parameters: dict[str, Parameter] = field(default_factory=dict)
 
     """File dependencies (for example, a reference genome)."""
     requires: tuple[str, ...] = ()
@@ -147,7 +157,10 @@ class Dag:
                 path=script_directory / spec["path"],
                 description=spec.get("description", ""),
                 requires=tuple(spec.get("requires", [])),
-                parameters=spec.get("parameters", {}),
+                parameters={
+                    name: Parameter(name, value)
+                    for name, value in spec.get("parameters", {}).items()
+                },
             )
             script_dependencies[name] = after
 
