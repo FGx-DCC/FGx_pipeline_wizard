@@ -4,6 +4,7 @@ import sys
 from enum import Enum, auto
 from itertools import chain
 from pathlib import Path
+from typing import NoReturn
 
 from pipeline_wizard.config_builder import ConfigBuilder
 from pipeline_wizard.dag import Dag, Parameter
@@ -235,14 +236,21 @@ def cleanup_previous_run(config_file: Path, run_script: Path) -> None:
         )
 
 
+def usage() -> NoReturn:
+    """Print tool usage and exit."""
+    exit_with_message(
+        f"{ANSIColors.GREEN}Usage: pipeline_wizard scripts_directory "
+        f"pipelines_directory out_config.txt run.sh{ANSIColors.RESET}",
+        exit_code=0,
+    )
+
+
 def main() -> None:
     """Entry point."""
+    if len(sys.argv) >= 2 and (sys.argv[1] == "-h" or sys.argv[1] == "--help"):
+        usage()
     if len(sys.argv) != 5:
-        exit_with_message(
-            f"{ANSIColors.GREEN}Usage: pipeline_wizard scripts_directory "
-            f"pipelines_directory out_config.txt run.sh{ANSIColors.RESET}",
-            exit_code=0,
-        )
+        usage()
     scripts_directory = Path(sys.argv[1])
     pipelines_directory = Path(sys.argv[2])
     config_file = Path(sys.argv[3])
