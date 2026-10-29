@@ -7,6 +7,7 @@ configuration file).
 ## Contents
 
 * [Installation](#installation)
+* [Usage](#usage)
 * [Why this exists](#why-this-exists)
 * [Idea](#idea)
 * [toml format for pipelines](#toml-format-for-pipelines)
@@ -29,6 +30,28 @@ conda activate FGx_pipeline_wizard
 
 pip install "git+https://github.com/FGx-DCC/FGx_pipeline_wizard.git"
 ```
+
+## Usage
+
+This package isn't meant to be used by a user, but instead by a pipeline
+developer. The intended route is the pipeline developer should create some
+shell script to setup all requirements for the user (downloading environments,
+libraries (*etc.*)) and then call on this tool (where it will know where the
+scripts and pipelines are located) to get the user to generate their run script
+and accompanying configuration file.
+
+To run the tool, use:
+
+```bash
+pipeline_wizard \
+  /path/to/scripts \
+  /path/to/pipelines \
+  /path/to/config_file \
+  /path/to/run_script
+```
+
+You will likely find it useful to get the user to input where the run script
+and config file should go.
 
 ## Why this exists
 
