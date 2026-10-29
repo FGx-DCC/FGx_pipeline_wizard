@@ -110,7 +110,7 @@ def run(  # noqa: C901
         ask(
             "What step would you like to start from?",
             choices=[f"Step {i}" for i in range(1, len(pipeline_steps) + 1)],
-            default=1,
+            default=0,
         )
         - 1
     )
