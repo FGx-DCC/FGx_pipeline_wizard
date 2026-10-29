@@ -374,10 +374,10 @@ def main() -> None:
         usage()
     if len(sys.argv) != 5:
         usage()
-    scripts_directory = Path(sys.argv[1])
-    pipelines_directory = Path(sys.argv[2])
-    config_file = Path(sys.argv[3])
-    run_script = Path(sys.argv[4])
+    scripts_directory = Path(sys.argv[1]).resolve()
+    pipelines_directory = Path(sys.argv[2]).resolve()
+    config_file = Path(sys.argv[3]).resolve()
+    run_script = Path(sys.argv[4]).resolve()
     try:
         run(scripts_directory, pipelines_directory, config_file, run_script)
     except Exception as exc:
