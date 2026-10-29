@@ -2,6 +2,7 @@
 
 import sys
 from enum import Enum, auto
+from itertools import chain
 from pathlib import Path
 
 from wizard.config_builder import ConfigBuilder
@@ -122,31 +123,32 @@ def main(
     if config_file.exists():
         return
 
-    for step in pipeline_steps:
-        for script in step:
-            for parameter in script.parameters.values():
-                if isinstance(parameter.default, list):
-                    value = parameter.default[
-                        ask(
-                            f"Pick a value for {parameter.name}",
-                            choices=[
-                                str(choice) for choice in parameter.default
-                            ],
-                        )
-                    ]
-                elif isinstance(parameter.default, int):
-                    value = ask(
-                        f"Choose a value for {parameter.name}",
-                        return_type=int,
-                        default=parameter.default,
-                    )
-                else:
-                    value = ask(
-                        f"Choose a value for {parameter.name}",
-                        return_type=str,
-                        default=parameter.default,
-                    )
-                config_builder.add_parameter_value_pair(parameter, value)
+    all_scripts = chain.from_iterable(pipeline_steps)
+    all_parameters = chain.from_iterable(
+        script.parameters.values() for script in all_scripts
+    )
+
+    for parameter in all_parameters:
+        if isinstance(parameter.default, list):
+            value = parameter.default[
+                ask(
+                    f"Pick a value for {parameter.name}",
+                    choices=[str(choice) for choice in parameter.default],
+                )
+            ]
+        elif isinstance(parameter.default, int):
+            value = ask(
+                f"Choose a value for {parameter.name}",
+                return_type=int,
+                default=parameter.default,
+            )
+        else:
+            value = ask(
+                f"Choose a value for {parameter.name}",
+                return_type=str,
+                default=parameter.default,
+            )
+        config_builder.add_parameter_value_pair(parameter, value)
 
     config_builder.write_config_file(config_file)
 
