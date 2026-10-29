@@ -67,8 +67,9 @@ description = "Read the data from a file and convert to pandas"
 [steps.clean]
 path = "clean.sh"
 description = "Use interpolation to remove missingness"
-requires = ["https://www.example.com/reference"]
 after = ["read"]
+[steps.clean.requires]
+reference = "https://www.example.com/reference"
 [steps.clean.parameters]
 max_distance = 5
 tool_version = ["v1", "v2"]

@@ -37,7 +37,7 @@ class Script:
     parameters: dict[str, Parameter] = field(default_factory=dict)
 
     """File dependencies (for example, a reference genome)."""
-    requires: list[str] = field(default_factory=list)
+    requires: dict[str, str] = field(default_factory=dict)
 
 
 Step = tuple[Script, ...]
@@ -87,8 +87,9 @@ class Dag:
             [steps.clean]
             path = "clean.sh"
             description = "Use interpolation to remove missingness"
-            requires = ["https://www.example.com/reference"]
             after = ["read"]
+            [steps.clean.requires]
+            reference = "https://www.example.com/reference"
             [steps.clean.parameters]
             max_distance = 5
             tool_version = ["v1","v2"]
@@ -298,7 +299,7 @@ class Dag:
                 name=name,
                 path=full_script_path,
                 description=specification.get("description", ""),
-                requires=specification.get("requires", []),
+                requires=specification.get("requires", {}),
                 parameters={
                     name: Parameter(name, value)
                     for name, value in specification.get(
