@@ -27,8 +27,8 @@ class Script:
     """Name of script."""
     name: str
 
-    """Path should be relative to the scripts directory."""
-    path: str
+    """Absolute path to the script."""
+    path: Path
 
     """What the script attempts to do."""
     description: str
@@ -282,9 +282,15 @@ class Dag:
             if "path" not in specification:
                 raise ValueError(f"Step {name!r} needs a 'path' or a 'dag'")
 
+            full_script_path: Path = (
+                script_directory.resolve() / specification["path"]
+            )
+            if not full_script_path.exists():
+                print(f"WARNING: {full_script_path} does not exist!")
+
             scripts[name] = Script(
                 name=name,
-                path=script_directory / specification["path"],
+                path=full_script_path,
                 description=specification.get("description", ""),
                 requires=specification.get("requires", []),
                 parameters={
