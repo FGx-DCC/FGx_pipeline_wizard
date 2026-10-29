@@ -13,50 +13,50 @@ from pathlib import Path
 class Parameter:
     """Represents a configuration parameter (such as a file path)."""
 
-    """The name of the parameter (to put into the config file)."""
     name: str
+    """The name of the parameter (to put into the config file)."""
 
-    """The default value used for the parameter."""
     default: str | int | bool | list[str] | list[int]
+    """The default value used for the parameter."""
 
 
 @dataclass
 class Requirement:
     """Represents an external requirement for the pipeline (a reference)."""
 
-    """The name of the requirement (to put into the config file)"""
     name: str
+    """The name of the requirement (to put into the config file)"""
 
+    instructions: str
     """Instructions or a URL on how to get said requirement.
 
     If this is a valid URL and the user doesn't have the file, the file will
     be retrieved via said URL.
 
     """
-    instructions: str
 
 
 @dataclass
 class Script:
     """Represents a script with associated information."""
 
-    """Name of script."""
     name: str
+    """Name of script."""
 
-    """Absolute path to the script."""
     path: Path
+    """Absolute path to the script."""
 
-    """What the script attempts to do."""
     description: str
+    """What the script attempts to do."""
 
-    """Scripts required to be completed for this to run."""
     dependencies: list[Script] = field(default_factory=list)
+    """Scripts required to be completed for this to run."""
 
-    """Configuration parameters needed."""
     parameters: dict[str, Parameter] = field(default_factory=dict)
+    """Configuration parameters needed."""
 
-    """File dependencies (for example, a reference genome)."""
     requires: dict[str, Requirement] = field(default_factory=dict)
+    """File dependencies (for example, a reference genome)."""
 
 
 Step = tuple[Script, ...]
