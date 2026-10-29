@@ -286,6 +286,9 @@ class Dag:
                 script_directory.resolve() / specification["path"]
             )
             if not full_script_path.exists():
+                # We only print a warning here as this isn't really the user's
+                # fault. It is more likely that the pipeline file was written
+                # poorly and so a warning helps the user with raising an issue.
                 print(f"WARNING: {full_script_path} does not exist!")
 
             scripts[name] = Script(
