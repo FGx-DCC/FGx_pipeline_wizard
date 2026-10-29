@@ -1,5 +1,6 @@
 """Methods for wizard to communicate with user."""
 
+from enum import StrEnum
 import sys
 from inspect import cleandoc
 from typing import Any, NoReturn, overload
@@ -7,7 +8,7 @@ from typing import Any, NoReturn, overload
 NO_DEFAULT = sentinel("NO_DEFAULT")
 
 
-class ANSIColors:
+class ANSIColors(StrEnum):
     """Define ANSI escape codes.
 
     Taken from stdlib `_colorize.py`. This is just a subset of that class and
