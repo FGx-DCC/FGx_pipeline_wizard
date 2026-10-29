@@ -144,7 +144,7 @@ def run(  # noqa: C901
         return
 
     for parameter in all_parameters:
-        if parameter.name in config_builder.parameters:
+        if parameter in config_builder.parameters:
             continue
         config_builder.add_parameter_value_pair(
             parameter, prompt_for_parameter_value(parameter)
@@ -170,7 +170,7 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
     """
     while True:
         user_has_file = ask_bool(f"""
-            This pipeline requires the file {requirement.name}.
+            This pipeline requires the file '{requirement.name}'.
             Do you have this file already?
         """)
 
@@ -179,7 +179,7 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
                 ask(
                     f"""
                     Please provide an absolute/relative path to the file:
-                        {requirement.name}
+                        '{requirement.name}'
                     """,
                     return_type=str,
                 )
@@ -194,19 +194,19 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
     # likely semantic instructions
     if urlparse(requirement.instructions).scheme == "":
         tell(f"""
-             Pipeline instructions say, to get {requirement.name}, you need to:
+             Pipeline instructions say, for '{requirement.name}', you need to:
 
              {requirement.instructions}
 
              Please make sure you complete this and add the path to
-             {requirement.name.upper()} in the configuration file before
+             '{requirement.name.upper()}' in the configuration file before
              running the pipeline.
         """)
         return Path()
 
     should_download = ask_bool(f"""
         Would you like to download the requirement now?
-        (from {requirement.instructions})
+        (from: {requirement.instructions})
     """)
 
     if should_download:
@@ -221,7 +221,7 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
     else:
         tell(f"""
              Please make sure you download this file yourself and add the path
-             to {requirement.name.upper()} in the configuration file before
+             to '{requirement.name.upper()}' in the configuration file before
              running the pipeline.
         """)
         return Path()
