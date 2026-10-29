@@ -15,6 +15,10 @@ First you will need:
     python.
 
 ```bash
+# Optionally create a conda environment first
+conda create -n FGx_pipeline_wizard conda-forge::python conda-forge::pip
+conda activate FGx_pipeline_wizard
+
 pip install "git+https://github.com/FGx-DCC/FGx_pipeline_wizard.git"
 ```
 
