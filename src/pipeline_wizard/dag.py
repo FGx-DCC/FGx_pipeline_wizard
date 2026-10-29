@@ -74,15 +74,15 @@ class Dag:
         global_parameters: dict[str, Parameter],
     ) -> None:
         """Initialise the instance."""
-        self._name = name
-        self._description = description
+        self.name = name
+        self.description = description
         self._scripts = scripts
         self._script_dependencies = script_dependencies
         self.global_parameters = global_parameters
 
     def __repr__(self) -> str:
         """Return representation of the pipeline."""
-        return f"{self._name}: {self._description}"
+        return f"{self.name}: {self.description}"
 
     @classmethod
     def from_toml(
@@ -177,9 +177,9 @@ class Dag:
             blocks.append(rows)
 
         canvas_width = max(len(row) for rows in blocks for row in rows)
-        print(self._name.center(canvas_width))
+        print(self.name.center(canvas_width))
         print("-" * canvas_width)
-        print(self._description.center(canvas_width))
+        print(self.description.center(canvas_width))
         print("═" * canvas_width)
         for index, rows in enumerate(blocks):
             if index:
@@ -220,8 +220,8 @@ class Dag:
             to_visit.extend(dependents[node])
 
         return Dag(
-            name=self._name,
-            description=self._description,
+            name=self.name,
+            description=self.description,
             scripts={
                 node: script
                 for node, script in self._scripts.items()

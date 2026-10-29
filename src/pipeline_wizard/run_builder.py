@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from pipeline_wizard.dag import Step
+from pipeline_wizard.dag import Dag, Step
 
 
 class RunBuilder:
@@ -15,7 +15,9 @@ class RunBuilder:
 
     """
 
-    def __init__(self, scripts_directory: Path, config_path: Path) -> None:
+    def __init__(
+        self, scripts_directory: Path, config_path: Path, pipeline: Dag
+    ) -> None:
         """Initialise the instance."""
         self._scripts_directory = scripts_directory
         self._config_path = config_path
@@ -23,13 +25,20 @@ class RunBuilder:
         self._contents = []
         self._step_counter = 1
 
-        self._add_header()
+        self._add_header(pipeline)
 
-    def _add_header(self) -> None:
+    def _add_header(self, pipeline: Dag) -> None:
         """Add top of the run script that will always exist."""
         self._contents.append("#!/bin/bash")
         self._contents.append("")
         self._contents.append("set -euo pipefail")
+        self._contents.append("")
+        self._contents.append("### " + "=" * 75)  # for a line length of 79
+        self._contents.append(f"### {pipeline.name}")
+        self._contents.append("### " + "-" * 75)
+        self._contents.append(f"### {pipeline.description}")
+        self._contents.append("### " + "=" * 75)
+        self._contents.append("")
         self._contents.append("")
         self._contents.append(f"source {self._config_path}")
         self._contents.append("")
@@ -37,7 +46,6 @@ class RunBuilder:
     def add_pipeline_step(self, step: Step) -> None:
         """Append scripts to run in parallel for next pipeline step."""
         self._contents.append(f"## Step {self._step_counter}")
-        self._contents.append("")
 
         for idx, script in enumerate(step, 1):
             job_name = f"jobid_{self._step_counter}_{idx}"
@@ -52,6 +60,14 @@ class RunBuilder:
                 if dependency_job_names != []
                 else ""
             )
+            self._contents.append("")
+
+            description = (
+                script.description
+                if script.description
+                else "No description given"
+            )
+            self._contents.append(f"# {script.name} -> {description}")
             self._contents.append(
                 f"{job_name}=$(sbatch {opts} {full_script_path} | awk '{{print $4}}')"  # noqa: E501
             )
