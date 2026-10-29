@@ -80,8 +80,8 @@ class Dag:
         self._script_dependencies = script_dependencies
         self.global_parameters = global_parameters
 
-    def __repr__(self) -> str:
-        """Return representation of the pipeline."""
+    def title(self) -> str:
+        """Return title of the pipeline."""
         return f"{self.name}: {self.description}"
 
     @classmethod

@@ -63,7 +63,9 @@ def run(  # noqa: C901
             (after selecting, a visual representation will be printed)
             To exit, press 'CTRL+D' (if you don't want any pipeline)
             """,
-                choices=[f"{pipeline!r}" for pipeline in parsed_pipelines],
+                choices=[
+                    f"{pipeline.title()}" for pipeline in parsed_pipelines
+                ],
             )
         ]
         pipeline_to_preview.print_diagram()
