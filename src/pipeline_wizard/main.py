@@ -4,10 +4,13 @@ import sys
 from enum import Enum, auto
 from itertools import chain
 from pathlib import Path
+from shutil import copyfileobj
 from typing import NoReturn
+from urllib.parse import urlparse
+from urllib.request import urlopen
 
 from pipeline_wizard.config_builder import ConfigBuilder
-from pipeline_wizard.dag import Dag, Parameter
+from pipeline_wizard.dag import Dag, Parameter, Requirement
 from pipeline_wizard.run_builder import RunBuilder
 from pipeline_wizard.wizard import (
     ANSIColors,
@@ -119,6 +122,17 @@ def run(  # noqa: C901
     config_builder = ConfigBuilder()
     run_script_builder = RunBuilder(scripts_directory, config_file)
 
+    all_scripts = chain.from_iterable(pipeline_steps)
+    all_parameters = chain(
+        chain.from_iterable(
+            script.parameters.values() for script in all_scripts
+        ),
+        chosen_pipeline.global_parameters.values(),
+    )
+    all_requirements = chain.from_iterable(
+        script.requires.values() for script in all_scripts
+    )
+
     for step in pipeline_steps:
         run_script_builder.add_pipeline_step(step)
 
@@ -128,20 +142,101 @@ def run(  # noqa: C901
     if config_file.exists():
         return
 
-    all_scripts = chain.from_iterable(pipeline_steps)
-    all_parameters = chain(
-        chain.from_iterable(
-            script.parameters.values() for script in all_scripts
-        ),
-        chosen_pipeline.global_parameters.values(),
-    )
-
     for parameter in all_parameters:
         config_builder.add_parameter_value_pair(
             parameter, prompt_for_parameter_value(parameter)
         )
 
+    for requirement in all_requirements:
+        config_builder.add_requirement_path_pair(
+            requirement.name, prompt_for_requirement_path(requirement)
+        )
+
     config_builder.write_config_file(config_file)
+
+
+def prompt_for_requirement_path(requirement: Requirement) -> Path:
+    """Get a requirement path for a requirement.
+
+    If the requirement doesn't exist on disk and the requirement instructions
+    is in the form of a URL, the file will be downloaded (and then this
+    function will return the path to the downloaded file).
+
+    """
+    while True:
+        user_has_file = ask_bool(f"""
+            This pipeline requires the file {requirement.name}.
+            Do you have this file already?
+        """)
+
+        if user_has_file:
+            requirement_path = Path(
+                ask(
+                    f"""
+                    Please provide an absolute/relative path to the file:
+                        {requirement.name}
+                    """,
+                    return_type=str,
+                )
+            ).resolve()
+            if requirement_path.exists():
+                return requirement_path
+            else:
+                tell(f"This path ({requirement_path}) does not exist...")
+        else:
+            break
+
+    # likely semantic instructions
+    if urlparse(requirement.instructions).scheme == "":
+        tell(f"""
+             Pipeline instructions say, to get {requirement.name}, you need to:
+
+             {requirement.instructions}
+
+             Please make sure you complete this and add the path to
+             {requirement.name.upper()} in the configuration file before
+             running the pipeline.
+        """)
+        return Path()
+
+    should_download = ask_bool(f"""
+        Would you like to download the requirement now?
+        (from {requirement.instructions})
+    """)
+
+    if should_download:
+        destination = Path(
+            ask(
+                "Where do you want to download to?",
+                return_type=str,
+                default=".",
+            )
+        )
+        return download_file(requirement.instructions, destination)
+    else:
+        tell(f"""
+             Please make sure you download this file yourself and add the path
+             to {requirement.name.upper()} in the configuration file before
+             running the pipeline.
+        """)
+        return Path()
+
+
+def download_file(url: str, destination: Path) -> Path:
+    """Attempt to download a file to some path."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https", "ftp"):
+        raise ValueError(
+            f"Unsupported scheme for downloading: {parsed.scheme!r}"
+        )
+
+    with (
+        urlopen(url, timeout=30) as response,
+        open(destination, "wb") as out_file,
+    ):
+        copyfileobj(response, out_file)
+
+    return destination
 
 
 def prompt_for_parameter_value(parameter: Parameter) -> int | str:
