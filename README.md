@@ -124,6 +124,8 @@ Key:
     [shellcheck](https://www.shellcheck.net/).
     - To make this less confusing, you could write all parameters in the toml
       in upper case too.
+  - Boolean parameters (true/false) are added to the config as TRUE/FALSE
+    though by toml standard, the toml should use `true` or `false`.
 - Requires -> An external file that is required (for example, a genome fasta).
   Denoted in `key = value` pairs under section header
   `[steps.step_name.requires]`
