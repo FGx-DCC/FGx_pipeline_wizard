@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
+import tomllib
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 from graphlib import CycleError, TopologicalSorter
 from pathlib import Path
-
-import tomllib
 
 
 @dataclass
@@ -54,7 +53,7 @@ class Dag:
         scripts: dict[str, Script],
         script_dependencies: dict[str, set[str]],
         global_parameters: list[Parameter],
-    ):
+    ) -> None:
         """Initialise the instance."""
         self._name = name
         self._description = description
@@ -313,8 +312,10 @@ class Dag:
         )
 
     def __repr__(self) -> str:
+        """Return representation of the pipeline."""
         return f"{self._name}: {self._description}"
 
     @property
     def script_names(self) -> list[str]:
+        """Return a list of names for all scripts used in pipeline."""
         return list(self._scripts.keys())

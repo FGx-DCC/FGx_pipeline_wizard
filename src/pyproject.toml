@@ -1,0 +1,38 @@
+[project]
+name = "pipeline_wizard"
+version = "0.0.1"
+description = "A wizard for generating config + run script for a pipeline"
+authors = [
+    {name = "Sam Fletcher", email = "s.o.fletcher@exeter.ac.uk"},
+]
+readme = "README.md"
+requires-python = ">=3.15"
+
+[project.scripts]
+pipeline_wizard = "pipeline_wizard.main:main"
+
+[tool.ruff]
+line-length=79
+indent-width=4
+target-version = "py315"
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle-error
+    "W", # pycodestyle-warning
+    "F", # pyflakes
+    "UP", # pyupgrade
+    "B", # flake8-bugbear
+    "SIM", # flake8-simplify
+    "ANN", # flake8-annotations
+    "I", # isort
+    "PD", # Pandas-vet
+    "C90", # maccabe
+    "D", # pydocstyle
+    "PERF", # perflint
+]
+ignore = [
+    "D107", # undocumented-public-init (redundant for most __init__() methods)
+    "D203",  # one-blank-line-before-class (conflicts with D211)
+    "D213",  # summary-second-line (conflicts with D212)
+]

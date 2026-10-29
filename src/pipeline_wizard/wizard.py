@@ -1,4 +1,4 @@
-#!/bin/env python3
+"""Methods for wizard to communicate with user."""
 
 import sys
 from inspect import cleandoc
@@ -97,7 +97,7 @@ def ask(message: str) -> int: ...
 def ask(message: str, *, default: int) -> int: ...
 
 
-def ask(
+def ask(  # noqa: C901
     message: str,
     choices: list[str] | None = None,
     return_type: type[int] | type[str] | type[float] = int,
@@ -184,7 +184,7 @@ def ask(
                 tell(f"Your answer must be between 1 and {len(choices)}")
                 continue
             return return_type(user_input)
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             tell("Invalid input")
         except KeyboardInterrupt:
             print("\nKeyboardInterrupt")  # Matches REPL

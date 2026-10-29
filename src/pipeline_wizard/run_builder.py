@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from wizard.dag import Step
+from pipeline_wizard.dag import Step
 
 
 class RunBuilder:
@@ -24,6 +24,7 @@ class RunBuilder:
         self._previous_jobids = []
 
     def header(self) -> None:
+        """Get top of the run script that will always exist."""
         self._contents.append("#!/bin/bash")
         self._contents.append("")
         self._contents.append(f"source {self._config_path}")

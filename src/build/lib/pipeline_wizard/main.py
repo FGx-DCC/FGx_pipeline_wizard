@@ -1,22 +1,23 @@
-"""Main entry point for config wizard"""
+"""Main entry point for config wizard."""
 
 import sys
 from enum import Enum, auto
 from itertools import chain
 from pathlib import Path
 
-from wizard.config_builder import ConfigBuilder
-from wizard.dag import Dag, Parameter
-from wizard.run_builder import RunBuilder
-from wizard.wizard import ask, ask_bool, exit_with_message, tell
+from pipeline_wizard.config_builder import ConfigBuilder
+from pipeline_wizard.dag import Dag, Parameter
+from pipeline_wizard.run_builder import RunBuilder
+from pipeline_wizard.wizard import ask, ask_bool, exit_with_message, tell
 
 
-def main(
+def main(  # noqa: C901
     scripts_directory: Path,
     pipelines_directory: Path,
     config_file: Path,
     run_script: Path,
 ) -> None:
+    """Run the wizard to create run.sh and accompanying config file."""
     # \\
     # Preliminary checks
     # //
@@ -160,7 +161,9 @@ def prompt_for_parameter_value(parameter: Parameter) -> int | str:
     return ask(message, return_type=str, default=default)
 
 
-def validate_directory_existence(directory_path: Path, directory_name: str):
+def validate_directory_existence(
+    directory_path: Path, directory_name: str
+) -> None:
     """Check a path is a valid directory and exists.
 
     This is quite weak, as of course, the expectant files may not exist within
@@ -185,7 +188,7 @@ class FileDeletionResult(Enum):
     NOTHING_TO_DELETE = auto()
 
 
-def cleanup_previous_run(config_file: Path, run_script: Path):
+def cleanup_previous_run(config_file: Path, run_script: Path) -> None:
     """Remove the config + run script if users want to overwrite them.
 
     In the event that neither file is to be overwritten, then there is nothing
@@ -221,7 +224,7 @@ def cleanup_previous_run(config_file: Path, run_script: Path):
         and run_script_deleted == FileDeletionResult.KEPT
     ):
         exit_with_message(
-            "Both config and run.sh exist and were not deleted, nothing to do...",
+            "Both config and run.sh exist and were not deleted, nothing to do",
             exit_code=0,
         )
 
@@ -229,7 +232,8 @@ def cleanup_previous_run(config_file: Path, run_script: Path):
 if __name__ == "__main__":
     if len(sys.argv) != 5:
         print(
-            f"Usage: {__file__} scripts_directory pipelines_directory out_config.txt run.sh"
+            f"Usage: {__file__} scripts_directory pipelines_directory "
+            "out_config.txt run.sh"
         )
     scripts_directory = Path(sys.argv[1])
     pipelines_directory = Path(sys.argv[2])

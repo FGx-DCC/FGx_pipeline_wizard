@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from wizard.dag import Parameter
+from pipeline_wizard.dag import Parameter
 
 
 class ConfigBuilder:
