@@ -372,21 +372,21 @@ def cleanup_previous_run(config_file: Path, run_script: Path) -> None:
         )
 
 
-def usage() -> NoReturn:
+def usage(exit_code: int) -> NoReturn:
     """Print tool usage and exit."""
     exit_with_message(
         f"{ANSIColors.GREEN}Usage: pipeline_wizard scripts_directory "
         f"pipelines_directory out_config.txt run.sh{ANSIColors.RESET}",
-        exit_code=0,
+        exit_code=exit_code,
     )
 
 
 def main() -> None:
     """Entry point."""
     if len(sys.argv) >= 2 and (sys.argv[1] == "-h" or sys.argv[1] == "--help"):
-        usage()
+        usage(exit_code=0)
     if len(sys.argv) != 5:
-        usage()
+        usage(exit_code=2)
     scripts_directory = Path(sys.argv[1]).resolve()
     pipelines_directory = Path(sys.argv[2]).resolve()
     config_file = Path(sys.argv[3]).resolve()
