@@ -92,7 +92,6 @@ Key:
 - description -> The description of the pipeline (top) or step
 - after -> What scripts need to complete successfully for this one to run (a
   prerequisite)
-- requires -> An external file that is required (for example, a genome fasta)
 - dag -> A path to another toml to embed into this one (allows for more
   flexibility and modularity)
 - Parameters -> Denoted in `key = value` pairs under section header
@@ -105,6 +104,16 @@ Key:
   - All parameters when added into the configuration file will be made upper
     case. This decision was made to stop complaints from linters like
     [shellcheck](https://www.shellcheck.net/).
+    - To make this less confusing, you could write all parameters in the toml
+      in upper case too.
+- Requires -> An external file that is required (for example, a genome fasta).
+  Denoted in `key = value` pairs under section header
+  `[steps.step_name.requires]`
+  - All requirements will be shown to the user. If a requirement value is a URL
+    and the user cannot show they have the file, the URL will be used to
+    download the file
+  - Requirements added to the configuration file will be made upper case. This
+    matches how parameters are written.
 - `[parameters]` -> This is a section for defining parameters that are used in
   multiple scripts. It is also given as key value pairs like above.
   - It is not recommended to use this for one off cases as users can remove

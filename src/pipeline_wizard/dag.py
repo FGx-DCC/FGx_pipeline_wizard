@@ -21,6 +21,22 @@ class Parameter:
 
 
 @dataclass
+class Requirement:
+    """Represents an external requirement for the pipeline (a reference)."""
+
+    """The name of the requirement (to put into the config file)"""
+    name: str
+
+    """Instructions or a URL on how to get said requirement.
+
+    If this is a valid URL and the user doesn't have the file, the file will
+    be retrieved via said URL.
+
+    """
+    instructions: str
+
+
+@dataclass
 class Script:
     """Represents a script with associated information."""
 
@@ -37,7 +53,7 @@ class Script:
     parameters: dict[str, Parameter] = field(default_factory=dict)
 
     """File dependencies (for example, a reference genome)."""
-    requires: dict[str, str] = field(default_factory=dict)
+    requires: dict[str, Requirement] = field(default_factory=dict)
 
 
 Step = tuple[Script, ...]
@@ -299,7 +315,12 @@ class Dag:
                 name=name,
                 path=full_script_path,
                 description=specification.get("description", ""),
-                requires=specification.get("requires", {}),
+                requires={
+                    name: Requirement(name, instructions)
+                    for name, instructions in specification.get(
+                        "requires", {}
+                    ).items()
+                },
                 parameters={
                     name: Parameter(name, value)
                     for name, value in specification.get(
