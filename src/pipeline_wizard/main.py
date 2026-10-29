@@ -150,7 +150,7 @@ def run(  # noqa: C901
 
     for requirement in all_requirements:
         config_builder.add_requirement_path_pair(
-            requirement.name, prompt_for_requirement_path(requirement)
+            requirement, prompt_for_requirement_path(requirement)
         )
 
     config_builder.write_config_file(config_file)

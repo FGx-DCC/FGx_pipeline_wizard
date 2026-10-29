@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from pipeline_wizard.dag import Parameter
+from pipeline_wizard.dag import Parameter, Requirement
 
 
 class ConfigBuilder:
@@ -26,6 +26,7 @@ class ConfigBuilder:
     def __init__(self) -> None:
         """Initialise the instance."""
         self._parameters = set()
+        self._requirements = set()
         self._contents = []
 
     def add_parameter_value_pair(
@@ -46,11 +47,14 @@ class ConfigBuilder:
         self._contents.append(f"export {parameter.name.upper()}={value}")
 
     def add_requirement_path_pair(
-        self, requirement_name: str, requirement_path: Path
+        self, requirement: Requirement, requirement_path: Path
     ) -> None:
         """Append requirement to configuration file contents."""
+        if requirement.name in self._requirements:
+            return
+
         self._contents.append(
-            f"export {requirement_name.upper()}={requirement_path}"
+            f"export {requirement.name.upper()}={requirement_path}"
         )
 
     def write_config_file(self, out_path: Path) -> None:
