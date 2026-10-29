@@ -102,7 +102,7 @@ def run(  # noqa: C901
             tell("Resetting back to unaltered pipeline...")
             chosen_pipeline = unaltered_pipeline
         else:
-            chosen_pipeline.prune(option_chosen)
+            chosen_pipeline = chosen_pipeline.prune(option_chosen)
 
     pipeline_steps = chosen_pipeline.steps
     # ±1 due to 1/0 based indexing switch
