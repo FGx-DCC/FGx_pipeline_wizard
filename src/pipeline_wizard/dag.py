@@ -50,7 +50,7 @@ class Script:
     description: str
 
     """Scripts required to be completed for this to run."""
-    dependencies: set[Script]
+    dependencies: list[Script]
 
     """Configuration parameters needed."""
     parameters: dict[str, Parameter] = field(default_factory=dict)
