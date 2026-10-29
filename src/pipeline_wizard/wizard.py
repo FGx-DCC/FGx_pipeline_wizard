@@ -29,7 +29,7 @@ class ANSIColors:
     YELLOW = "\x1b[33m"
 
 
-def tell(message: str) -> None:
+def tell(message: str, colour: ANSIColors = ANSIColors.RESET) -> None:
     """Print formatted text to the terminal.
 
     This is required as many messages to be sent to the user by the wizard will
@@ -45,8 +45,11 @@ def tell(message: str) -> None:
     Args:
         message:
             The text to print to the terminal.
+        colour:
+            The colour to use for the message.
 
     """
+    message = colour + message + ANSIColors.RESET
     print(cleandoc(message))
 
 
