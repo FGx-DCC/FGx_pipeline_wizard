@@ -90,8 +90,8 @@ def run(  # noqa: C901
                 remove from the pipeline. Any step you pick will also remove
                 any dependent steps.
 
-                If you messed up (accidently removed a step you didn't want to)
-                use the 'Restart' option.
+                If you messed up (accidentally removed a step) use the
+                'Restart' option.
 
                 If you just want to start the pipeline halfway through, that
                 option will come later.
@@ -326,7 +326,7 @@ def validate_directory_existence(
 
 
 class FileDeletionResult(Enum):
-    """Result of deleteing a file."""
+    """Result of deleting a file."""
 
     DELETED = auto()
     KEPT = auto()
@@ -409,10 +409,10 @@ def main() -> None:
     try:
         run(scripts_directory, pipelines_directory, config_file, run_script)
     except Exception as exc:
-        print(f"FATAL ERROR occured: {exc}", file=sys.stderr)
+        print(f"FATAL ERROR occurred: {exc}", file=sys.stderr)
         print_debug = ask_bool("Do you want full traceback?")
         if print_debug:
-            raise  # reraise and let propogate up
+            raise  # reraise and let propagate up
         sys.exit(1)
 
 

@@ -109,7 +109,7 @@ def ask(  # noqa: C901
 ) -> Any:
     """Tell then obtain an answer from stdin.
 
-    Sending and EOF marker will terminate the program, mimicking REPL behaviour
+    Sending an EOF marker will terminate the program, mimicking REPL behaviour
     (though this is done at a python level, rather than at C level).
 
     Args:
@@ -119,7 +119,7 @@ def ask(  # noqa: C901
             An optional list of choices (user only needs to type 1-x). These
             will be enumerated.
         return_type:
-            The type to coerse user input to.
+            The type to coerce user input to.
         default:
             Returned if user enters nothing. When not given, an empty input is
             ignored. Defaults are returned as is (not coerced).
