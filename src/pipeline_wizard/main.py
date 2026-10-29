@@ -394,10 +394,11 @@ def main() -> None:
     try:
         run(scripts_directory, pipelines_directory, config_file, run_script)
     except Exception as exc:
-        print(f"FATAL ERROR occured: {exc}")
+        print(f"FATAL ERROR occured: {exc}", file=sys.stderr)
         print_debug = ask_bool("Do you want full traceback?")
         if print_debug:
             raise  # reraise and let propogate up
+        sys.exit(1)
 
 
 if __name__ == "__main__":
