@@ -7,6 +7,7 @@ configuration file).
 ## Contents
 
 * [Installation](#installation)
+* [Why this exists](#why-this-exists)
 * [Idea](#idea)
 * [toml format for pipelines](#toml-format-for-pipelines)
 * [Assumptions](#assumptions)
@@ -28,6 +29,23 @@ conda activate FGx_pipeline_wizard
 
 pip install "git+https://github.com/FGx-DCC/FGx_pipeline_wizard.git"
 ```
+
+## Why this exists
+
+Are there other options out there? Yes, of course, there is nextflow and
+snakemake and hundreds of other options. What sets this apart is that it tries
+to make things easier for the user. Researchers (in my experience) don't like
+to install a new tool to run a pipeline. So this assumes 2 things, the user
+uses slurm (very common, and if needed other executors can be added) and the
+user can get python (conda is incredibly common in research contexts already).
+
+The problem with something like nextflow or snakemake is that you need to write
+your pipeline in the form the tool wants (granted, that's the case with this
+tool, but I'm trying to make it as easy as possible). The other issue is that
+a user wanting to run such a workflow needs said tool to run it too (which
+sometimes isn't even possible). This tool provides pipeline creators with a
+simple file format to create pipelines and then gives pipeline users a wizard
+to generate a shell script they can execute like any other.
 
 ## Idea
 
