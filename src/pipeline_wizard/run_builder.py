@@ -46,7 +46,7 @@ class RunBuilder:
                 else ""
             )
             self._contents.append(
-                f"{jobid_variable}=$(sbatch {opts} {full_script_path})"
+                f"{jobid_variable}=$(sbatch {opts} {full_script_path} | awk '{{print $4}}')"  # noqa: E501
             )
         self._contents.append("")
 
