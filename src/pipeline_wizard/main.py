@@ -106,14 +106,12 @@ def run(  # noqa: C901
 
     pipeline_steps = chosen_pipeline.steps
     # ±1 due to 1/0 based indexing switch
-    start = (
-        ask(
-            "What step would you like to start from?",
-            choices=[f"Step {i}" for i in range(1, len(pipeline_steps) + 1)],
-            default=0,
-        )
-        - 1
+    start = ask(
+        "What step would you like to start from?",
+        choices=[f"Step {i}" for i in range(1, len(pipeline_steps) + 1)],
+        default=0,
     )
+    print(start)
     pipeline_steps = pipeline_steps[start:]
 
     # \\
