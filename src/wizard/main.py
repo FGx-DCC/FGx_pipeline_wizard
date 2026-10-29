@@ -6,7 +6,7 @@ from itertools import chain
 from pathlib import Path
 
 from wizard.config_builder import ConfigBuilder
-from wizard.dag import Dag
+from wizard.dag import Dag, Parameter
 from wizard.run_builder import RunBuilder
 from wizard.wizard import ask, ask_bool, exit_with_message, tell
 
@@ -129,28 +129,32 @@ def main(
     )
 
     for parameter in all_parameters:
-        if isinstance(parameter.default, list):
-            value = parameter.default[
-                ask(
-                    f"Pick a value for {parameter.name}",
-                    choices=[str(choice) for choice in parameter.default],
-                )
-            ]
-        elif isinstance(parameter.default, int):
-            value = ask(
-                f"Choose a value for {parameter.name}",
-                return_type=int,
-                default=parameter.default,
-            )
-        else:
-            value = ask(
-                f"Choose a value for {parameter.name}",
-                return_type=str,
-                default=parameter.default,
-            )
-        config_builder.add_parameter_value_pair(parameter, value)
+        config_builder.add_parameter_value_pair(
+            parameter, prompt_for_parameter_value(parameter)
+        )
 
     config_builder.write_config_file(config_file)
+
+
+def prompt_for_parameter_value(parameter: Parameter) -> int | str:
+    """Get a parameter value from the user."""
+    default = parameter.default
+
+    # A list for the default means this is a set of choices the user can make
+    if isinstance(default, list):
+        choices = default
+        index = ask(
+            f"Pick a value for {parameter.name}",
+            choices=[str(choice) for choice in choices],
+        )
+        return choices[index]
+
+    message = f"Choose a value for {parameter.name}"
+
+    if isinstance(default, int):
+        return ask(message, return_type=int, default=default)
+
+    return ask(message, return_type=str, default=default)
 
 
 def validate_directory_existence(directory_path: Path, directory_name: str):
