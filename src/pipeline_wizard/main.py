@@ -8,6 +8,7 @@ from shutil import copyfileobj
 from typing import NoReturn
 from urllib.parse import urlparse
 from urllib.request import urlopen
+from urllib.error import HTTPError
 
 from pipeline_wizard.config_builder import ConfigBuilder
 from pipeline_wizard.dag import Dag, Parameter, Requirement
@@ -217,14 +218,17 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
                 default=".",
             )
         )
-        return download_file(requirement.instructions, destination)
-    else:
-        tell(f"""
-             Please make sure you download this file yourself and add the path
-             to '{requirement.name.upper()}' in the configuration file before
-             running the pipeline.
-        """)
-        return Path()
+        try:
+            return download_file(requirement.instructions, destination)
+        except HTTPError as exc:
+            tell(f"Failed to download file from {destination} ({exc})...")
+
+    tell(f"""
+         Please make sure you download this file yourself and add the path
+         to '{requirement.name.upper()}' in the configuration file before
+         running the pipeline.
+    """)
+    return Path()
 
 
 def download_file(url: str, destination: Path) -> Path:
