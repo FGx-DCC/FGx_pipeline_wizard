@@ -110,6 +110,8 @@ Key:
 - description -> The description of the pipeline (top) or step
 - after -> What scripts need to complete successfully for this one to run (a
   prerequisite)
+  - after *must* be provided as a list `["step1","step2"]` even if there is
+    only one script it depends on
 - dag -> A path to another toml to embed into this one (allows for more
   flexibility and modularity)
 - Parameters -> Denoted in `key = value` pairs under section header
