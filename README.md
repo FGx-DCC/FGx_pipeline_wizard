@@ -1,9 +1,24 @@
-# Config/Run wizard
+# FGx Pipeline Wizard
 
-This is a collection of scripts (with entry point `main.py`) that will generate
-a wrapper script (run.sh) with an accompanying configuration file. These files
-are generated from `toml` files that describe the steps of a pipeline and user
-input. The idea is this:
+This is a python package used by FGx pipelines to generate a single script
+(`run.sh`) to execute all scripts that make up a pipeline (with accompanying
+configuration file).
+
+## Installation
+
+First you will need:
+
+- [python(>=3.15)](https://www.python.org/)
+  - It is recommended to create a
+    [conda](https://github.com/conda-forge/miniforge) environment (or
+    equivalent) for python, so that the installation doesn't crowd system
+    python.
+
+```bash
+pip install "git+https://github.com/FGx-DCC/FGx_pipeline_wizard.git"
+```
+
+## Idea
 
 - A user can select from a set of pipelines (or create their own)
 - The user can then remove branches of the pipeline they don't need (perhaps
@@ -22,7 +37,7 @@ A user is capable of changing the `run.sh` or configuration file themselves
 manually, but they may not be comfortable with this. For this reason, the user
 may want to rerun this tool to update these files.
 
-## toml format
+## toml format for pipelines
 
 Pipelines are written in [toml](https://toml.io/en/) like so:
 
