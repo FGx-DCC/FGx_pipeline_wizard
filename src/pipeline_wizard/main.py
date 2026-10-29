@@ -371,6 +371,19 @@ def cleanup_previous_run(config_file: Path, run_script: Path) -> None:
             exit_code=0,
         )
 
+    if (
+        config_deleted == FileDeletionResult.KEPT
+        and run_script_deleted == FileDeletionResult.DELETED
+    ):
+        tell(
+            """
+            WARNING: Deleting the config but not the run script could lead to
+            missing parameters. Please only do this if you know what you are
+            doing or you are pruning the run script.
+            """,
+            ANSIColors.YELLOW,
+        )
+
 
 def usage(exit_code: int) -> NoReturn:
     """Print tool usage and exit."""
