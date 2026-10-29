@@ -265,7 +265,11 @@ class Dag:
         }
 
         for name, specification in dag_data.get("steps", {}).items():
-            after = set(specification.get("after", []))
+            after = specification.get("after", [])
+            if not isinstance(after, list):
+                raise ValueError(f"after lines should be lists: {after}")
+
+            after = set(after)
 
             if "dag" in specification:
                 # Flatten nested DAG
