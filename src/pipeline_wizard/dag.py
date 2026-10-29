@@ -61,6 +61,10 @@ class Dag:
         self._script_dependencies = script_dependencies
         self._global_parameters = global_parameters
 
+    def __repr__(self) -> str:
+        """Return representation of the pipeline."""
+        return f"{self._name}: {self._description}"
+
     @classmethod
     def from_toml(
         cls, path: Path, script_directory: Path, dag_directory: Path
@@ -121,6 +125,97 @@ class Dag:
             layers.append(tuple(self._scripts[n] for n in sorted(ready)))
             sorter.done(*ready)
         return layers
+
+    def print_diagram(self) -> None:
+        """Print the pipeline top-down as layers of boxes."""
+
+        def box(script: Script) -> list[str]:
+            dependencies = sorted(self._script_dependencies[script.name])
+            lines = [script.name]
+            if dependencies:
+                lines.append("after: " + ", ".join(dependencies))
+            inner = max(len(line) for line in lines)
+            return [
+                "┌" + "─" * (inner + 2) + "┐",
+                *(f"│ {line.ljust(inner)} │" for line in lines),
+                "└" + "─" * (inner + 2) + "┘",
+            ]
+
+        blocks: list[list[str]] = []
+        for layer in self.steps:
+            boxes = [box(script) for script in layer]
+            height = max(len(b) for b in boxes)
+            rows = [
+                "   ".join(
+                    b[i] if i < len(b) else " " * len(b[0]) for b in boxes
+                )
+                for i in range(height)
+            ]
+            blocks.append(rows)
+
+        canvas_width = max(len(row) for rows in blocks for row in rows)
+        print(self._name.center(canvas_width))
+        print("-" * canvas_width)
+        print(self._description.center(canvas_width))
+        print("═" * canvas_width)
+        for index, rows in enumerate(blocks):
+            if index:
+                print("│".center(canvas_width))
+                print("▼".center(canvas_width))
+            for row in rows:
+                print(row.center(canvas_width))
+
+    def prune(self, script_name: str) -> Dag:
+        """Return a copy of the DAG without the given script or dependents.
+
+        Any step that depends (directly or transitively) on a removed step
+        is also removed, since it could no longer run.
+
+        Raises:
+            ValueError: If a name is not a step in the pipeline
+
+        """
+        if script_name not in self.script_names:
+            raise ValueError("This is not a script in the pipeline")
+
+        # Invert the dependency mapping to be able to walk downwards rather
+        # than upwards
+        dependents: dict[str, set[str]] = {
+            name: set() for name in self._scripts
+        }
+        for node, dependencies in self._script_dependencies.items():
+            for dependency in dependencies:
+                dependents[dependency].add(node)
+
+        removed: set[str] = set()
+        to_visit = [script_name]
+        while to_visit:
+            node = to_visit.pop()
+            if node in removed:
+                continue
+            removed.add(node)
+            to_visit.extend(dependents[node])
+
+        return Dag(
+            name=self._name,
+            description=self._description,
+            scripts={
+                node: script
+                for node, script in self._scripts.items()
+                if node not in removed
+            },
+            script_dependencies={
+                node: dependencies
+                for node, dependencies in self._script_dependencies.items()
+                if node not in removed
+            },
+            global_parameters=self._global_parameters,
+        )
+
+    @property
+    def script_names(self) -> list[str]:
+        """Return a list of names for all scripts used in pipeline."""
+        return list(self._scripts.keys())
 
     @classmethod
     def _from_dict(
@@ -224,98 +319,3 @@ class Dag:
             script_dependencies=script_dependencies,
             global_parameters=global_parameters,
         )
-
-    def print_diagram(self) -> None:
-        """Print the pipeline top-down as layers of boxes."""
-
-        def box(script: Script) -> list[str]:
-            dependencies = sorted(self._script_dependencies[script.name])
-            lines = [script.name]
-            if dependencies:
-                lines.append("after: " + ", ".join(dependencies))
-            inner = max(len(line) for line in lines)
-            return [
-                "┌" + "─" * (inner + 2) + "┐",
-                *(f"│ {line.ljust(inner)} │" for line in lines),
-                "└" + "─" * (inner + 2) + "┘",
-            ]
-
-        blocks: list[list[str]] = []
-        for layer in self.steps:
-            boxes = [box(script) for script in layer]
-            height = max(len(b) for b in boxes)
-            rows = [
-                "   ".join(
-                    b[i] if i < len(b) else " " * len(b[0]) for b in boxes
-                )
-                for i in range(height)
-            ]
-            blocks.append(rows)
-
-        canvas_width = max(len(row) for rows in blocks for row in rows)
-        print(self._name.center(canvas_width))
-        print("-" * canvas_width)
-        print(self._description.center(canvas_width))
-        print("═" * canvas_width)
-        for index, rows in enumerate(blocks):
-            if index:
-                print("│".center(canvas_width))
-                print("▼".center(canvas_width))
-            for row in rows:
-                print(row.center(canvas_width))
-
-    def prune(self, script_name: str) -> Dag:
-        """Return a copy of the DAG without the given script or dependents.
-
-        Any step that depends (directly or transitively) on a removed step
-        is also removed, since it could no longer run.
-
-        Raises:
-            ValueError: If a name is not a step in the pipeline
-
-        """
-        if script_name not in self.script_names:
-            raise ValueError("This is not a script in the pipeline")
-
-        # Invert the dependency mapping to be able to walk downwards rather
-        # than upwards
-        dependents: dict[str, set[str]] = {
-            name: set() for name in self._scripts
-        }
-        for node, dependencies in self._script_dependencies.items():
-            for dependency in dependencies:
-                dependents[dependency].add(node)
-
-        removed: set[str] = set()
-        to_visit = [script_name]
-        while to_visit:
-            node = to_visit.pop()
-            if node in removed:
-                continue
-            removed.add(node)
-            to_visit.extend(dependents[node])
-
-        return Dag(
-            name=self._name,
-            description=self._description,
-            scripts={
-                node: script
-                for node, script in self._scripts.items()
-                if node not in removed
-            },
-            script_dependencies={
-                node: dependencies
-                for node, dependencies in self._script_dependencies.items()
-                if node not in removed
-            },
-            global_parameters=self._global_parameters,
-        )
-
-    def __repr__(self) -> str:
-        """Return representation of the pipeline."""
-        return f"{self._name}: {self._description}"
-
-    @property
-    def script_names(self) -> list[str]:
-        """Return a list of names for all scripts used in pipeline."""
-        return list(self._scripts.keys())
