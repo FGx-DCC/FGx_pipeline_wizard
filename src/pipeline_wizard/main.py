@@ -83,6 +83,9 @@ def run(  # noqa: C901
         option_chosen = options[
             ask(
                 """
+                ===============
+                PIPELINE EDITOR
+                ===============
                 Please pick a step (or select 'Finished' if there are none) to
                 remove from the pipeline. Any step you pick will also remove
                 any dependent steps.
