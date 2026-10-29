@@ -216,6 +216,7 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
              Please make sure you complete this and add the path to
              '{requirement.name.upper()}' in the configuration file before
              running the pipeline.
+
         """)
         return Path()
 
@@ -244,6 +245,7 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
          Please make sure you download this file yourself and add the path
          to '{requirement.name.upper()}' in the configuration file before
          running the pipeline.
+
     """)
     return Path()
 
