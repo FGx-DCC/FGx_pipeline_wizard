@@ -10,10 +10,12 @@ class ConfigBuilder:
 
     The configuration file will be of the form::
 
-        export FGX_ONT_PARAMETER=value
-        export FGX_ONT_PARAMETER=value
+        export PARAMETER=value
+        export PARAMETER=value
         ...
-        export FGX_ONT_PARAMETER=value
+        export PARAMETER=value
+        ...
+        export REQUIREMENT=/path/to/requirement
 
 
     All scripts will use these parameters from the environment (hence the use
@@ -42,6 +44,14 @@ class ConfigBuilder:
 
         self._parameters.add(parameter.name)
         self._contents.append(f"export {parameter.name.upper()}={value}")
+
+    def add_requirement_path_pair(
+        self, requirement_name: str, requirement_path: Path
+    ) -> None:
+        """Append requirement to configuration file contents."""
+        self._contents.append(
+            f"export {requirement_name.upper()}={requirement_path}"
+        )
 
     def write_config_file(self, out_path: Path) -> None:
         """Write the contents of the run script to the path.
