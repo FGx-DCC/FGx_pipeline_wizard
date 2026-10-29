@@ -50,7 +50,7 @@ class Script:
     description: str
 
     """Scripts required to be completed for this to run."""
-    dependencies: list[Script]
+    dependencies: list[Script] = field(default_factory=list)
 
     """Configuration parameters needed."""
     parameters: dict[str, Parameter] = field(default_factory=dict)
@@ -324,7 +324,6 @@ class Dag:
                         "requires", {}
                     ).items()
                 },
-                dependencies=[scripts[script] for script in after],
                 parameters={
                     name: Parameter(name, value)
                     for name, value in specification.get(
@@ -339,6 +338,9 @@ class Dag:
             for dependency in node_dependencies:
                 expanded |= aliases.get(dependency, {dependency})
             script_dependencies[node] = expanded
+            scripts[node].dependencies = [
+                scripts[dependency] for dependency in expanded
+            ]
 
         unknown_dependencies = {
             dependency
