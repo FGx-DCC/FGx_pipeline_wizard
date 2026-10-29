@@ -49,6 +49,9 @@ class Script:
     """What the script attempts to do."""
     description: str
 
+    """Scripts required to be completed for this to run."""
+    dependencies: set[Script]
+
     """Configuration parameters needed."""
     parameters: dict[str, Parameter] = field(default_factory=dict)
 
@@ -321,6 +324,7 @@ class Dag:
                         "requires", {}
                     ).items()
                 },
+                dependencies=[scripts[script] for script in after],
                 parameters={
                     name: Parameter(name, value)
                     for name, value in specification.get(

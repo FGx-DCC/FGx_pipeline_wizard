@@ -19,9 +19,9 @@ class RunBuilder:
         """Initialise the instance."""
         self._scripts_directory = scripts_directory
         self._config_path = config_path
+        self._job_names: dict[str, str] = {}
         self._contents = []
         self._step_counter = 1
-        self._previous_jobids = []
 
         self._add_header()
 
@@ -39,23 +39,25 @@ class RunBuilder:
         self._contents.append(f"## Step {self._step_counter}")
         self._contents.append("")
 
-        jobids = []
         for idx, script in enumerate(step, 1):
-            jobid_variable = f"jobid_{self._step_counter}_{idx}"
-            jobids.append(f'"${{{jobid_variable}}}"')
+            job_name = f"jobid_{self._step_counter}_{idx}"
+            self._job_names[script.name] = job_name
             full_script_path = self._scripts_directory / script.path
+            dependency_job_names = [
+                self._job_names[dependent_script.name]
+                for dependent_script in script.dependencies
+            ]
             opts = (
-                "--dependency=afterok:" + ":".join(self._previous_jobids)
-                if self._previous_jobids != []
+                "--dependency=afterok:" + ":".join(dependency_job_names)
+                if dependency_job_names != []
                 else ""
             )
             self._contents.append(
-                f"{jobid_variable}=$(sbatch {opts} {full_script_path} | awk '{{print $4}}')"  # noqa: E501
+                f"{job_name}=$(sbatch {opts} {full_script_path} | awk '{{print $4}}')"  # noqa: E501
             )
         self._contents.append("")
 
         self._step_counter += 1
-        self._previous_jobids = jobids
 
     def write_run_script(self, out_path: Path) -> None:
         """Write the contents of the run script to the path.
