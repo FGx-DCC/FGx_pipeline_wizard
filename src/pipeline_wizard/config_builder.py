@@ -53,4 +53,4 @@ class ConfigBuilder:
 
         """
         with open(out_path, mode="w") as config_file:
-            config_file.writelines(self._contents)
+            config_file.write("\n".join(self._contents))

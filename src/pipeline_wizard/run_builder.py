@@ -63,4 +63,4 @@ class RunBuilder:
 
         """
         with open(out_path, mode="w") as run_script:
-            run_script.writelines(self._contents)
+            run_script.write("\n".join(self._contents))
