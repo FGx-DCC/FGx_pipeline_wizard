@@ -253,7 +253,13 @@ def main() -> None:
     pipelines_directory = Path(sys.argv[2])
     config_file = Path(sys.argv[3])
     run_script = Path(sys.argv[4])
-    run(scripts_directory, pipelines_directory, config_file, run_script)
+    try:
+        run(scripts_directory, pipelines_directory, config_file, run_script)
+    except Exception as exc:
+        print(f"FATAL ERROR occured: {exc}")
+        print_debug = ask_bool("Do you want full traceback?")
+        if print_debug:
+            raise  # reraise and let propogate up
 
 
 if __name__ == "__main__":
