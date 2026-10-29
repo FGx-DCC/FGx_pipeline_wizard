@@ -102,7 +102,9 @@ def main(
         start = (
             ask(
                 "What step would you like to start from?",
-                choices=[f"Step {i}" for i in range(1, len(pipeline_steps))],
+                choices=[
+                    f"Step {i}" for i in range(1, len(pipeline_steps) + 1)
+                ],
             )
             - 1
         )
