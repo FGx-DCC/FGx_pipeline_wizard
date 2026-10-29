@@ -105,6 +105,11 @@ def run(  # noqa: C901
             break
         elif option_chosen == "Preview":
             chosen_pipeline.print_diagram()
+            ask(
+                "Hit enter to go back to editor",
+                return_type=str,  # using str here in case they type anything
+                default="back to editor",  # not used, but is shown in prompt
+            )
         elif option_chosen == "Restart":
             tell("Resetting back to unaltered pipeline...", ANSIColors.GREEN)
             chosen_pipeline = unaltered_pipeline
