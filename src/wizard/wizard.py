@@ -4,9 +4,7 @@ import sys
 from inspect import cleandoc
 from typing import Any, NoReturn, overload
 
-from typing_extensions import Sentinel
-
-NO_DEFAULT = Sentinel("NO_DEFAULT")
+NO_DEFAULT = sentinel("NO_DEFAULT")
 
 
 class ANSIColors:
