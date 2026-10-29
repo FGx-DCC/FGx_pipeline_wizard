@@ -129,13 +129,11 @@ def run(  # noqa: C901
         return
 
     all_scripts = chain.from_iterable(pipeline_steps)
-    all_parameters = (
-        list(
-            chain.from_iterable(
-                script.parameters.values() for script in all_scripts
-            )
-        )
-        + chosen_pipeline.global_parameters
+    all_parameters = chain(
+        chain.from_iterable(
+            script.parameters.values() for script in all_scripts
+        ),
+        chosen_pipeline.global_parameters.values(),
     )
 
     for parameter in all_parameters:

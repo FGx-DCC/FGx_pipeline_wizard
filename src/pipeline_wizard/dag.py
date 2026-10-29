@@ -52,7 +52,7 @@ class Dag:
         description: str,
         scripts: dict[str, Script],
         script_dependencies: dict[str, set[str]],
-        global_parameters: list[Parameter],
+        global_parameters: dict[str, Parameter],
     ) -> None:
         """Initialise the instance."""
         self._name = name
@@ -236,7 +236,10 @@ class Dag:
         # dependencies for steps dependent on the dag as a whole)
         aliases: dict[str, set[str]] = {}
 
-        global_parameters = dag_data.get("parameters", [])
+        global_parameters = {
+            name: Parameter(name, default)
+            for name, default in dag_data.get("parameters", {}).items()
+        }
 
         for name, specification in dag_data.get("steps", {}).items():
             after = set(specification.get("after", []))
