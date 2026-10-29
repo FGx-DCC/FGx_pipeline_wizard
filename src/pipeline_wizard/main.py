@@ -151,7 +151,7 @@ def run(  # noqa: C901
          parameter will appear on the left inside of the square brackets. These
          defaults have been chosen by the pipeline creator, so only change them
          if you know what you are doing.
-
+         ---
     """)
 
     for parameter in all_parameters:
@@ -216,7 +216,7 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
              Please make sure you complete this and add the path to
              '{requirement.name.upper()}' in the configuration file before
              running the pipeline.
-
+             ---
         """)
         return Path()
 
@@ -245,7 +245,7 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
          Please make sure you download this file yourself and add the path
          to '{requirement.name.upper()}' in the configuration file before
          running the pipeline.
-
+         ---
     """)
     return Path()
 
