@@ -59,7 +59,7 @@ class Dag:
         self._description = description
         self._scripts = scripts
         self._script_dependencies = script_dependencies
-        self._global_parameters = global_parameters
+        self.global_parameters = global_parameters
 
     def __repr__(self) -> str:
         """Return representation of the pipeline."""
@@ -209,7 +209,7 @@ class Dag:
                 for node, dependencies in self._script_dependencies.items()
                 if node not in removed
             },
-            global_parameters=self._global_parameters,
+            global_parameters=self.global_parameters,
         )
 
     @property

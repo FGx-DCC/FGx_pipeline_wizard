@@ -111,7 +111,6 @@ def run(  # noqa: C901
         choices=[f"Step {i}" for i in range(1, len(pipeline_steps) + 1)],
         default=0,
     )
-    print(start)
     pipeline_steps = pipeline_steps[start:]
 
     # \\
@@ -130,8 +129,13 @@ def run(  # noqa: C901
         return
 
     all_scripts = chain.from_iterable(pipeline_steps)
-    all_parameters = chain.from_iterable(
-        script.parameters.values() for script in all_scripts
+    all_parameters = (
+        list(
+            chain.from_iterable(
+                script.parameters.values() for script in all_scripts
+            )
+        )
+        + chosen_pipeline.global_parameters
     )
 
     for parameter in all_parameters:
