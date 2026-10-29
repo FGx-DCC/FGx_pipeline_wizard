@@ -23,8 +23,10 @@ class RunBuilder:
         self._step_counter = 1
         self._previous_jobids = []
 
-    def header(self) -> None:
-        """Get top of the run script that will always exist."""
+        self._add_header()
+
+    def _add_header(self) -> None:
+        """Add top of the run script that will always exist."""
         self._contents.append("#!/bin/bash")
         self._contents.append("")
         self._contents.append(f"source {self._config_path}")
