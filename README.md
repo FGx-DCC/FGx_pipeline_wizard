@@ -94,6 +94,9 @@ Key:
   - If a list is given for value (`[option_1, option_2]`), the user will be
     given this list of options to choose from (rather than trying to guess at a
     different value)
+  - All parameters when added into the configuration file will be made upper
+    case. This decision was made to stop complaints from linters like
+    [shellcheck](https://www.shellcheck.net/).
 - `[parameters]` -> This is a section for defining parameters that are used in
   multiple scripts. It is also given as key value pairs like above.
   - It is not recommended to use this for one off cases as users can remove
@@ -101,3 +104,15 @@ Key:
     (and that script is removed from the pipeline), it should go under that
     particular script (not the global parameters), else the user would need to
     set a value that is never used.
+
+## Assumptions
+
+- The [slurm workload manager](https://slurm.schedmd.com/) is used as a job
+  executor in the scripts being ran
+  - Under this light, all scripts in the pipeline being generated are expected
+    to run if called with `sbatch` (meaning they need a shebang and #SBATCH
+    directives)
+- Scripts will obtain configuration parameters from the environment. The config
+  file generated consists of lines like `export PARAMETER_NAME=value`. A
+  reminder that all parameters will be capitalised when added to the
+  configuration file.
