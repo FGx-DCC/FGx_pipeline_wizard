@@ -151,6 +151,9 @@ def prompt_for_parameter_value(parameter: Parameter) -> int | str:
 
     message = f"Choose a value for {parameter.name}"
 
+    if isinstance(default, bool):
+        return ask_bool(message)
+
     if isinstance(default, int):
         return ask(message, return_type=int, default=default)
 

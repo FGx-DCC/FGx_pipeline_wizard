@@ -18,7 +18,7 @@ class Parameter:
     name: str
 
     """The default value used for the parameter."""
-    default: str | int | list[str] | list[int]
+    default: str | int | bool | list[str] | list[int]
 
 
 @dataclass
