@@ -30,7 +30,7 @@ class ConfigBuilder:
         self._contents = []
 
     def add_parameter_value_pair(
-        self, parameter: Parameter, value: str | int
+        self, parameter: Parameter, value: str | int | bool
     ) -> None:
         """Append config parameter to configuration file contents.
 
@@ -42,6 +42,11 @@ class ConfigBuilder:
         """
         if parameter.name in self.parameters:
             return
+
+        if isinstance(value, str):
+            value = f'"{value}"'
+        if isinstance(value, bool):
+            value = "TRUE" if value else "FALSE"
 
         self.parameters.add(parameter.name)
         self._contents.append(f"export {parameter.name.upper()}={value}")
@@ -55,7 +60,7 @@ class ConfigBuilder:
 
         self.requirements.add(requirement.name)
         self._contents.append(
-            f"export {requirement.name.upper()}={requirement_path}"
+            f'export {requirement.name.upper()}="{str(requirement_path)}"'
         )
 
     def write_config_file(self, out_path: Path) -> None:
