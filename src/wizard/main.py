@@ -4,7 +4,9 @@ import sys
 from enum import Enum, auto
 from pathlib import Path
 
+from wizard.config_builder import ConfigBuilder
 from wizard.dag import Dag
+from wizard.run_builder import RunBuilder
 from wizard.wizard import ask, ask_bool, exit_with_message, tell
 
 
@@ -104,6 +106,47 @@ def main(
         - 1
     )
     pipeline_steps = pipeline_steps[start:]
+
+    # \\
+    # Write output files
+    # //
+    config_builder = ConfigBuilder()
+    run_script_builder = RunBuilder(scripts_directory, config_file)
+
+    for step in pipeline_steps:
+        run_script_builder.add_pipeline_step(step)
+
+    if not run_script.exists():
+        run_script_builder.write_run_script(run_script)
+
+    if not config_file.exists():
+        for step in pipeline_steps:
+            for script in step:
+                for parameter in script.parameters.values():
+                    if isinstance(parameter.default, list):
+                        value = parameter.default[
+                            ask(
+                                f"Pick a value for {parameter.name}",
+                                choices=[
+                                    str(choice) for choice in parameter.default
+                                ],
+                            )
+                        ]
+                    elif isinstance(parameter.default, int):
+                        value = ask(
+                            f"Choose a value for {parameter.name}",
+                            return_type=int,
+                            default=parameter.default,
+                        )
+                    else:
+                        value = ask(
+                            f"Choose a value for {parameter.name}",
+                            return_type=str,
+                            default=parameter.default,
+                        )
+                    config_builder.add_parameter_value_pair(parameter, value)
+
+        config_builder.write_config_file(config_file)
 
 
 def validate_directory_existence(directory_path: Path, directory_name: str):
