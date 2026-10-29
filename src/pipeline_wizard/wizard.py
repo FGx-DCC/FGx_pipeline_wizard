@@ -50,8 +50,8 @@ def tell(message: str, colour: ANSIColors = ANSIColors.RESET) -> None:
             The colour to use for the message.
 
     """
-    message = colour + message + ANSIColors.RESET
-    print(cleandoc(message))
+    message = f"{colour}{cleandoc(message)}{ANSIColors.RESET}"
+    print(message)
 
 
 def exit_with_message(message: str, exit_code: int = 1) -> NoReturn:
