@@ -238,12 +238,13 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
             ask(
                 "Where do you want to download to?",
                 return_type=str,
-                default=".",
+                default=f"./{requirement.name}",
             )
         )
         try:
             return download_file(requirement.instructions, destination)
         except HTTPError as exc:
+        except (HTTPError, ValueError) as exc:
             tell(
                 f"Failed to download file from {destination} ({exc})...",
                 ANSIColors.RED,
