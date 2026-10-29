@@ -1,7 +1,7 @@
 """Methods for wizard to communicate with user."""
 
-from enum import StrEnum
 import sys
+from enum import StrEnum
 from inspect import cleandoc
 from typing import Any, NoReturn, overload
 
