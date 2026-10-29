@@ -236,14 +236,15 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
     if should_download:
         destination = Path(
             ask(
-                "Where do you want to download to?",
+                "Where do you want to download to? (directory or full path)",
                 return_type=str,
                 default=f"./{requirement.name}",
             )
         )
         try:
-            return download_file(requirement.instructions, destination)
-        except HTTPError as exc:
+            return download_file(
+                requirement.instructions, destination, requirement.name
+            )
         except (HTTPError, ValueError) as exc:
             tell(
                 f"Failed to download file from {destination} ({exc})...",
@@ -259,8 +260,11 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
     return Path()
 
 
-def download_file(url: str, destination: Path) -> Path:
+def download_file(url: str, destination: Path, default_file_name: str) -> Path:
     """Attempt to download a file to some path."""
+    if destination.is_dir():
+        destination = destination / default_file_name
+
     parsed = urlparse(url)
     if parsed.scheme not in ("http", "https", "ftp"):
         raise ValueError(
