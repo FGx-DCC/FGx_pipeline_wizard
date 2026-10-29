@@ -38,7 +38,7 @@ class RunBuilder:
         jobids = []
         for idx, script in enumerate(step, 1):
             jobid_variable = f"jobid_{self._step_counter}_{idx}"
-            jobids.append(jobid_variable)
+            jobids.append(f'"${{{jobid_variable}}}"')
             full_script_path = self._scripts_directory / script.path
             opts = (
                 "--dependency=afterok:" + ",".join(self._previous_jobids)
