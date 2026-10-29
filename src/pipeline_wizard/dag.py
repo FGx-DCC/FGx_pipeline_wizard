@@ -148,6 +148,9 @@ class Dag:
 
     def print_diagram(self) -> None:
         """Print the pipeline top-down as layers of boxes."""
+        if len(self.steps) == 0:
+            print("Pipeline is empty...")
+            return
 
         def box(script: Script) -> list[str]:
             dependencies = sorted(self._script_dependencies[script.name])
