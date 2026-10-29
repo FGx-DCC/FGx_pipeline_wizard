@@ -98,7 +98,7 @@ def run(  # noqa: C901
             break
         elif option_chosen == "Preview":
             chosen_pipeline.print_diagram()
-        elif chosen_pipeline == "Restart":
+        elif option_chosen == "Restart":
             tell("Resetting back to unaltered pipeline...")
             chosen_pipeline = unaltered_pipeline
         else:
