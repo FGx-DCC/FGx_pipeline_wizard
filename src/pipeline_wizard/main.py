@@ -145,6 +145,15 @@ def run(  # noqa: C901
     if config_file.exists():
         return
 
+    tell("""
+         We will now gather parameter values and external requirements to build
+         the configuration file. For each choice, The default value for each
+         parameter will appear on the left inside of the square brackets. These
+         defaults have been chosen by the pipeline creator, so only change them
+         if you know what you are doing.
+
+    """)
+
     for parameter in all_parameters:
         if parameter.name in config_builder.parameters:
             continue
