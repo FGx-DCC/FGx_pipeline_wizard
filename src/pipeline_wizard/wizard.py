@@ -174,6 +174,7 @@ def ask(  # noqa: C901
         shown = default + 1 if choices else default
         prompt = f"{ANSIColors.GREEN}[{shown}]{ANSIColors.RESET} {prompt}"
 
+    escape_times = 0
     while True:
         try:
             user_input = input(prompt).strip()
@@ -191,7 +192,11 @@ def ask(  # noqa: C901
         except ValueError, TypeError:
             tell("Invalid input")
         except KeyboardInterrupt:
-            print("\nKeyboardInterrupt")  # Matches REPL
+            escape_times += 1
+            if escape_times >= 3:
+                tell("Use CTRL+D to exit", ANSIColors.CYAN)
+            else:
+                print("\nKeyboardInterrupt")  # Matches REPL
         except EOFError:
             print()
             sys.exit(0)  # Matches REPL
