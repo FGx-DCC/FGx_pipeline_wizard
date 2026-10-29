@@ -25,8 +25,8 @@ class ConfigBuilder:
 
     def __init__(self) -> None:
         """Initialise the instance."""
-        self._parameters = set()
-        self._requirements = set()
+        self.parameters = set()
+        self.requirements = set()
         self._contents = []
 
     def add_parameter_value_pair(
@@ -40,19 +40,20 @@ class ConfigBuilder:
             that file paths exist/can be written to).
 
         """
-        if parameter.name in self._parameters:
+        if parameter.name in self.parameters:
             return
 
-        self._parameters.add(parameter.name)
+        self.parameters.add(parameter.name)
         self._contents.append(f"export {parameter.name.upper()}={value}")
 
     def add_requirement_path_pair(
         self, requirement: Requirement, requirement_path: Path
     ) -> None:
         """Append requirement to configuration file contents."""
-        if requirement.name in self._requirements:
+        if requirement.name in self.requirements:
             return
 
+        self.requirements.add(requirement.name)
         self._contents.append(
             f"export {requirement.name.upper()}={requirement_path}"
         )

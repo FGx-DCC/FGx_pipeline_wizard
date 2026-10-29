@@ -144,11 +144,15 @@ def run(  # noqa: C901
         return
 
     for parameter in all_parameters:
+        if parameter.name in config_builder.parameters:
+            continue
         config_builder.add_parameter_value_pair(
             parameter, prompt_for_parameter_value(parameter)
         )
 
     for requirement in all_requirements:
+        if requirement.name in config_builder.requirements:
+            continue
         config_builder.add_requirement_path_pair(
             requirement, prompt_for_requirement_path(requirement)
         )
