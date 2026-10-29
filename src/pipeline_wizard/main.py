@@ -8,7 +8,13 @@ from pathlib import Path
 from pipeline_wizard.config_builder import ConfigBuilder
 from pipeline_wizard.dag import Dag, Parameter
 from pipeline_wizard.run_builder import RunBuilder
-from pipeline_wizard.wizard import ask, ask_bool, exit_with_message, tell
+from pipeline_wizard.wizard import (
+    ANSIColors,
+    ask,
+    ask_bool,
+    exit_with_message,
+    tell,
+)
 
 
 def run(  # noqa: C901
@@ -232,9 +238,10 @@ def cleanup_previous_run(config_file: Path, run_script: Path) -> None:
 def main() -> None:
     """Entry point."""
     if len(sys.argv) != 5:
-        print(
-            f"Usage: {__file__} scripts_directory pipelines_directory "
-            "out_config.txt run.sh"
+        exit_with_message(
+            f"{ANSIColors.GREEN}Usage: pipeline_wizard scripts_directory "
+            f"pipelines_directory out_config.txt run.sh{ANSIColors.RESET}",
+            exit_code=0,
         )
     scripts_directory = Path(sys.argv[1])
     pipelines_directory = Path(sys.argv[2])
