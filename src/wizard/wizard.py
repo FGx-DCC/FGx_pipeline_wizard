@@ -4,6 +4,10 @@ import sys
 from inspect import cleandoc
 from typing import Any, NoReturn, overload
 
+from typing_extensions import Sentinel
+
+NO_DEFAULT = Sentinel("NO_DEFAULT")
+
 
 class ANSIColors:
     """Define ANSI escape codes.
@@ -74,17 +78,32 @@ def ask(message: str, *, choices: list[str]) -> int: ...
 
 
 @overload
+def ask(message: str, *, choices: list[str], default: int) -> int: ...
+
+
+@overload
 def ask[T: (int, str, float)](message: str, *, return_type: type[T]) -> T: ...
+
+
+@overload
+def ask[T: (int, str, float)](
+    message: str, *, return_type: type[T], default: T
+) -> T: ...
 
 
 @overload
 def ask(message: str) -> int: ...
 
 
+@overload
+def ask(message: str, *, default: int) -> int: ...
+
+
 def ask(
     message: str,
     choices: list[str] | None = None,
     return_type: type[int] | type[str] | type[float] = int,
+    default: Any = NO_DEFAULT,
 ) -> Any:
     """Tell then obtain an answer from stdin.
 
@@ -99,6 +118,9 @@ def ask(
             will be enumerated.
         return_type:
             The type to coerse user input to.
+        default:
+            Returned if user enters nothing. When not given, an empty input is
+            ignored. Defaults are returned as is (not coerced).
 
     Returns:
         The coerced value from the user input. If `choices` is given, the
@@ -127,6 +149,12 @@ def ask(
         explicit `type[int] | type[str] | ...` union and the `Any` return.
 
     """
+    has_default = default is not NO_DEFAULT
+    if has_default and choices and default not in range(len(choices)):
+        raise ValueError(
+            f"Default must be an index between 0 and {len(choices) - 1}"
+        )
+
     tell(message)
 
     if choices:
@@ -139,12 +167,17 @@ def ask(
             )
         )
 
+    prompt = f"{ANSIColors.GREEN}${ANSIColors.RESET} "
+    if has_default:
+        shown = default + 1 if choices else default
+        prompt = f"{ANSIColors.GREEN}[{shown}]{ANSIColors.RESET} {prompt}"
+
     while True:
         try:
-            user_input = input(
-                f"{ANSIColors.GREEN}${ANSIColors.RESET} "
-            ).strip()
+            user_input = input(prompt).strip()
             if not user_input:
+                if has_default:
+                    return default
                 continue
             if choices:
                 choice = int(user_input)
@@ -160,21 +193,6 @@ def ask(
         except EOFError:
             print()
             sys.exit(0)  # Matches REPL
-
-
-def ask_optional(
-    message: str,
-    sentinel: str,
-) -> str | None:
-    """Ask, but returns None if the answer matches `sentinel`.
-
-    This is better than using some 'defaults' approach as the type coercion
-    that needs to be accounted for for `None` causes too much complexity in
-    the 'ask' function.
-
-    """
-    answer = ask(message, return_type=str)
-    return None if answer.strip().lower() == sentinel.lower() else answer
 
 
 def ask_bool(message: str) -> bool:
