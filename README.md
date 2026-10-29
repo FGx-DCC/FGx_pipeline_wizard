@@ -122,6 +122,8 @@ Key:
   - All parameters when added into the configuration file will be made upper
     case. This decision was made to stop complaints from linters like
     [shellcheck](https://www.shellcheck.net/).
+    - This is important as it means if you have a pipeline with parameters like
+    'paramname' and 'ParamName', these will be merged into one
     - To make this less confusing, you could write all parameters in the toml
       in upper case too.
   - Boolean parameters (true/false) are added to the config as TRUE/FALSE
