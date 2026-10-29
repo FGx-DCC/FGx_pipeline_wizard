@@ -122,15 +122,16 @@ def run(  # noqa: C901
     config_builder = ConfigBuilder()
     run_script_builder = RunBuilder(scripts_directory, config_file)
 
-    all_scripts = chain.from_iterable(pipeline_steps)
     all_parameters = chain(
         chain.from_iterable(
-            script.parameters.values() for script in all_scripts
+            script.parameters.values()
+            for script in chain.from_iterable(pipeline_steps)
         ),
         chosen_pipeline.global_parameters.values(),
     )
     all_requirements = chain.from_iterable(
-        script.requires.values() for script in all_scripts
+        script.requires.values()
+        for script in chain.from_iterable(pipeline_steps)
     )
 
     for step in pipeline_steps:
