@@ -140,6 +140,7 @@ def run(  # noqa: C901
 
     if not run_script.exists():
         run_script_builder.write_run_script(run_script)
+        tell(f"Created run script at {run_script}", ANSIColors.GREEN)
 
     if config_file.exists():
         return
@@ -159,6 +160,7 @@ def run(  # noqa: C901
         )
 
     config_builder.write_config_file(config_file)
+    tell(f"Created configuration file at {config_file}", ANSIColors.GREEN)
 
 
 def prompt_for_requirement_path(requirement: Requirement) -> Path:
