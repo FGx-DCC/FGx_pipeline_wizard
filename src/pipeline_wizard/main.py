@@ -145,7 +145,7 @@ def run(  # noqa: C901
         return
 
     for parameter in all_parameters:
-        if parameter in config_builder.parameters:
+        if parameter.name in config_builder.parameters:
             continue
         config_builder.add_parameter_value_pair(
             parameter, prompt_for_parameter_value(parameter)
