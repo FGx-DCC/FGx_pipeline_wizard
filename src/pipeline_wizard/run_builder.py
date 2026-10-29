@@ -44,7 +44,7 @@ class RunBuilder:
             self._job_names[script.name] = job_name
             full_script_path = self._scripts_directory / script.path
             dependency_job_names = [
-                self._job_names[dependent_script.name]
+                f'"${{{self._job_names[dependent_script.name]}}}"'
                 for dependent_script in script.dependencies
             ]
             opts = (
