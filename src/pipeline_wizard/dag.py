@@ -281,6 +281,7 @@ class Dag:
                     for dependencies in sub_dag._script_dependencies.values()
                     for dependency in dependencies
                 }
+                global_parameters.update(sub_dag.global_parameters)
                 for (
                     node,
                     node_dependencies,
