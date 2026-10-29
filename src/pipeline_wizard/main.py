@@ -6,9 +6,9 @@ from itertools import chain
 from pathlib import Path
 from shutil import copyfileobj
 from typing import NoReturn
+from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import urlopen
-from urllib.error import HTTPError
 
 from pipeline_wizard.config_builder import ConfigBuilder
 from pipeline_wizard.dag import Dag, Parameter, Requirement
