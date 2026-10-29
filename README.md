@@ -22,6 +22,8 @@ First you will need:
     [conda](https://github.com/conda-forge/miniforge) environment (or
     equivalent) for python, so that the installation doesn't crowd system
     python.
+  - 3.15 is quite a recent version, so conda is probably required. Some 3.15
+    features are used, hence the requirement.
 
 ```bash
 # Optionally create a conda environment first
