@@ -4,6 +4,13 @@ This is a python package used by FGx pipelines to generate a single script
 (`run.sh`) to execute all scripts that make up a pipeline (with accompanying
 configuration file).
 
+## Contents
+
+* [Installation](#installation)
+* [Idea](#idea)
+* [toml format for pipelines](#toml-format-for-pipelines)
+* [Assumptions](#assumptions)
+
 ## Installation
 
 First you will need:
