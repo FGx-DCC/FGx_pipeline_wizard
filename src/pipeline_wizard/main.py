@@ -103,7 +103,7 @@ def run(  # noqa: C901
         elif option_chosen == "Preview":
             chosen_pipeline.print_diagram()
         elif option_chosen == "Restart":
-            tell("Resetting back to unaltered pipeline...")
+            tell("Resetting back to unaltered pipeline...", ANSIColors.GREEN)
             chosen_pipeline = unaltered_pipeline
         else:
             chosen_pipeline = chosen_pipeline.prune(option_chosen)
@@ -190,7 +190,10 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
             if requirement_path.exists():
                 return requirement_path
             else:
-                tell(f"This path ({requirement_path}) does not exist...")
+                tell(
+                    f"This path ({requirement_path}) does not exist...",
+                    ANSIColors.YELLOW,
+                )
         else:
             break
 
@@ -223,7 +226,10 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
         try:
             return download_file(requirement.instructions, destination)
         except HTTPError as exc:
-            tell(f"Failed to download file from {destination} ({exc})...")
+            tell(
+                f"Failed to download file from {destination} ({exc})...",
+                ANSIColors.RED,
+            )
 
     tell(f"""
          Please make sure you download this file yourself and add the path
