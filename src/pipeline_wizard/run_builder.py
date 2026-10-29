@@ -43,7 +43,7 @@ class RunBuilder:
             jobids.append(f'"${{{jobid_variable}}}"')
             full_script_path = self._scripts_directory / script.path
             opts = (
-                "--dependency=afterok:" + ",".join(self._previous_jobids)
+                "--dependency=afterok:" + ":".join(self._previous_jobids)
                 if self._previous_jobids != []
                 else ""
             )
