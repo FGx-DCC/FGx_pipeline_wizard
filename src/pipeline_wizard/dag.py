@@ -8,6 +8,8 @@ from functools import cached_property
 from graphlib import CycleError, TopologicalSorter
 from pathlib import Path
 
+from pipeline_wizard.exceptions import NotADagError, PipelineParseError
+
 
 @dataclass
 class Parameter:
@@ -69,6 +71,7 @@ class Dag:
         self,
         name: str,
         description: str,
+        file_path: Path,
         scripts: dict[str, Script],
         script_dependencies: dict[str, set[str]],
         global_parameters: dict[str, Parameter],
@@ -76,6 +79,7 @@ class Dag:
         """Initialise the instance."""
         self.name = name
         self.description = description
+        self.file_path = file_path
         self._scripts = scripts
         self._script_dependencies = script_dependencies
         self.global_parameters = global_parameters
@@ -124,6 +128,8 @@ class Dag:
         """
         with path.open("rb") as dag_toml:
             data = tomllib.load(dag_toml)
+
+        data["file_path"] = path
         return cls._from_dict(data, script_directory, dag_directory)
 
     @cached_property
@@ -131,14 +137,16 @@ class Dag:
         """Layers of scripts that can be ran in parallel.
 
         Raises:
-            RuntimeError: If there is a cycle in the pipeline
+            NotADagError: If there is a cycle in the pipeline
 
         """
         sorter = TopologicalSorter(self._script_dependencies)
         try:
             sorter.prepare()
         except CycleError as exc:
-            raise RuntimeError("There is a cycle in your pipeline") from exc
+            raise NotADagError(
+                "There is a cycle in your pipeline", self.file_path
+            ) from exc
         layers: list[Step] = []
         while sorter.is_active():
             ready = sorter.get_ready()
@@ -222,6 +230,7 @@ class Dag:
         return Dag(
             name=self.name,
             description=self.description,
+            file_path=self.file_path,
             scripts={
                 node: script
                 for node, script in self._scripts.items()
@@ -247,7 +256,8 @@ class Dag:
         """Construct a DAG from a dictionary.
 
         Raises:
-            ValueError:
+            PipelineParseError:
+                - If an 'after' value is not a list
                 - If a step has no associated dag or script path
                 - If a step has unknown dependencies
 
@@ -267,7 +277,10 @@ class Dag:
         for name, specification in dag_data.get("steps", {}).items():
             after = specification.get("after", [])
             if not isinstance(after, list):
-                raise ValueError(f"after lines should be lists: {after}")
+                raise PipelineParseError(
+                    f"'after' lines should be lists: {after}",
+                    dag_data.get("file_path", "unknown_path"),
+                )
 
             after = set(after)
 
@@ -311,7 +324,10 @@ class Dag:
                 continue
 
             if "path" not in specification:
-                raise ValueError(f"Step {name!r} needs a 'path' or a 'dag'")
+                raise PipelineParseError(
+                    f"Step {name!r} needs a 'path' or a 'dag'",
+                    dag_data.get("file_path", "unknown_path"),
+                )
 
             full_script_path: Path = (
                 script_directory.resolve() / specification["path"]
@@ -347,8 +363,9 @@ class Dag:
             for dependency in dependencies
         } - script_dependencies.keys()
         if unknown_dependencies:
-            raise ValueError(
-                f"Unknown dependencies: {sorted(unknown_dependencies)}"
+            raise PipelineParseError(
+                f"Unknown dependencies: {sorted(unknown_dependencies)}",
+                dag_data.get("file_path", "unknown_path"),
             )
 
         for node, node_dependencies in script_dependencies.items():
@@ -363,6 +380,7 @@ class Dag:
         return cls(
             name=dag_data.get("name", "unnamed_pipeline"),
             description=dag_data.get("description", ""),
+            file_path=dag_data.get("file_path", "unknown_path"),
             scripts=scripts,
             script_dependencies=script_dependencies,
             global_parameters=global_parameters,

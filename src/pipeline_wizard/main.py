@@ -7,6 +7,7 @@ from pathlib import Path
 from pipeline_wizard.cli_parser import PipelineWizardArgs
 from pipeline_wizard.config_builder import ConfigBuilder
 from pipeline_wizard.dag import Dag
+from pipeline_wizard.exceptions import NotADagError, PipelineParseError
 from pipeline_wizard.prompts import (
     prompt_for_parameter_value,
     prompt_for_requirement_path,
@@ -51,8 +52,8 @@ def run(  # noqa: C901
             )
             for pipeline in pipelines
         ]
-    except (ValueError, RuntimeError) as exc:
-        exit_with_message(f"Failed to parse a pipeline: {exc}")
+    except (NotADagError, PipelineParseError) as exc:
+        exit_with_message(f"{exc}")
 
     chosen_pipeline: Dag | None = None
     while chosen_pipeline is None:
