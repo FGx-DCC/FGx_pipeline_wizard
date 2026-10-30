@@ -13,13 +13,19 @@ from pipeline_wizard.wizard import (
     tell,
 )
 
+TODO = sentinel("TODO")
 
-def prompt_for_requirement_path(requirement: Requirement) -> Path:
+
+def prompt_for_requirement_path(requirement: Requirement) -> Path | TODO:
     """Get a requirement path for a requirement.
 
     If the requirement doesn't exist on disk and the requirement instructions
     is in the form of a URL, the file will be downloaded (and then this
     function will return the path to the downloaded file).
+
+    Returns:
+        The path to the requiement or `TODO` if the user needs to do something
+        themselves.
 
     """
     while True:
@@ -64,7 +70,7 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
              running the pipeline.
              ---
         """)
-        return Path()
+        return TODO
 
     should_download = ask_bool(f"""
         Would you like to download the requirement now?
@@ -98,7 +104,7 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
          running the pipeline.
          ---
     """)
-    return Path()
+    return TODO
 
 
 def prompt_for_parameter_value(parameter: Parameter) -> int | str:

@@ -5,6 +5,8 @@ from pathlib import Path
 from pipeline_wizard.dag import Parameter, Requirement
 import shlex
 
+from pipeline_wizard.prompts import TODO
+
 
 class ConfigBuilder:
     """Config writer, module by module.
@@ -53,13 +55,19 @@ class ConfigBuilder:
         self._contents.append(f"export {parameter.name.upper()}={value}")
 
     def add_requirement_path_pair(
-        self, requirement: Requirement, requirement_path: Path
+        self, requirement: Requirement, requirement_path: Path | TODO
     ) -> None:
         """Append requirement to configuration file contents."""
         if requirement.name in self.requirements:
             return
-
         self.requirements.add(requirement.name)
+
+        if requirement_path is TODO:
+            self._contents.append(
+                f"# Fill below using: {requirement.instructions}"
+            )
+            self._contents.append(f"export {requirement.name.upper()}=")
+
         self._contents.append(
             f'export {requirement.name.upper()}="{str(requirement_path)}"'
         )
