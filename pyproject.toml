@@ -7,6 +7,8 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.15"
+license = "MIT"
+license-files = ["LICENSE"]
 
 [build-system]
 requires = ["setuptools >= 77.0.3"]
