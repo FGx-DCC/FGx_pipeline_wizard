@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import os
 from pipeline_wizard.dag import Dag, Step
 
 
@@ -93,3 +94,5 @@ class RunBuilder:
         """
         with open(out_path, mode="w") as run_script:
             run_script.write("\n".join(self._contents))
+
+        os.chmod(out_path, mode=0o755)
