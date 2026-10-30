@@ -54,6 +54,7 @@ class RunBuilder:
             dependency_job_names = [
                 f'"${{{self._job_names[dependent_script.name]}}}"'
                 for dependent_script in script.dependencies
+                if dependent_script.name in self._job_names
             ]
             opts = (
                 "--dependency=afterok:" + ":".join(dependency_job_names)
