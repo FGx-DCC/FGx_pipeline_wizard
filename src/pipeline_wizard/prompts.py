@@ -85,7 +85,10 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
             )
         except (URLError, ValueError, OSError) as exc:
             tell(
-                f"Failed to download file to {destination} ({exc})...",
+                f"""
+                 Failed to download file to {destination} from
+                 {requirement.instructions} ({exc})...
+                 """,
                 ANSIColors.RED,
             )
 
