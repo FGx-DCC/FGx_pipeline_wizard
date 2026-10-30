@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pipeline_wizard.cli_parser import PipelineWizardArgs
 from pipeline_wizard.config_builder import ConfigBuilder
-from pipeline_wizard.dag import Dag
+from pipeline_wizard.dag import Dag, Parameter, Requirement
 from pipeline_wizard.exceptions import NotADagError, PipelineParseError
 from pipeline_wizard.prompts import (
     prompt_for_parameter_value,
@@ -159,16 +159,27 @@ def run(  # noqa: C901
         for script in chain.from_iterable(pipeline_steps)
     )
 
-    for step in pipeline_steps:
-        run_script_builder.add_pipeline_step(step)
+    if not args.config_file.exists():
+        _build_config_file(config_builder, all_parameters, all_requirements)
+        config_builder.write_config_file(args.config_file)
+        tell(
+            f"Created configuration file at {args.config_file}",
+            ANSIColors.GREEN,
+        )
 
     if not args.run_script.exists():
+        for step in pipeline_steps:
+            run_script_builder.add_pipeline_step(step)
         run_script_builder.write_run_script(args.run_script)
         tell(f"Created run script at {args.run_script}", ANSIColors.GREEN)
 
-    if args.config_file.exists():
-        return
 
+def _build_config_file(
+    builder: ConfigBuilder,
+    parameters: chain[Parameter],
+    requirements: chain[Requirement],
+) -> None:
+    """Build the configuration file."""
     tell("""
          We will now gather parameter values and external requirements to build
          the configuration file. For each choice, The default value for each
@@ -178,22 +189,19 @@ def run(  # noqa: C901
          ---
     """)
 
-    for parameter in all_parameters:
-        if parameter.name in config_builder.parameters:
+    for parameter in parameters:
+        if parameter.name in builder.parameters:
             continue
-        config_builder.add_parameter_value_pair(
+        builder.add_parameter_value_pair(
             parameter, prompt_for_parameter_value(parameter)
         )
 
-    for requirement in all_requirements:
-        if requirement.name in config_builder.requirements:
+    for requirement in requirements:
+        if requirement.name in builder.requirements:
             continue
-        config_builder.add_requirement_path_pair(
+        builder.add_requirement_path_pair(
             requirement, prompt_for_requirement_path(requirement)
         )
-
-    config_builder.write_config_file(args.config_file)
-    tell(f"Created configuration file at {args.config_file}", ANSIColors.GREEN)
 
 
 def _validate_directory_existence(
