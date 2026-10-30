@@ -16,14 +16,18 @@ class RunBuilder:
     """
 
     def __init__(
-        self, scripts_directory: Path, config_path: Path, pipeline: Dag
+        self,
+        scripts_directory: Path,
+        config_path: Path,
+        pipeline: Dag,
+        starting_step: int,
     ) -> None:
         """Initialise the instance."""
         self._scripts_directory = scripts_directory
         self._config_path = config_path
         self._job_names: dict[str, str] = {}
         self._contents = []
-        self._step_counter = 1
+        self._step_counter = starting_step
 
         self._add_header(pipeline)
 

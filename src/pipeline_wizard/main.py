@@ -132,7 +132,7 @@ def run(  # noqa: C901
     # //
     config_builder = ConfigBuilder()
     run_script_builder = RunBuilder(
-        args.scripts_directory, args.config_file, chosen_pipeline
+        args.scripts_directory, args.config_file, chosen_pipeline, start + 1
     )
 
     all_parameters = chain(
