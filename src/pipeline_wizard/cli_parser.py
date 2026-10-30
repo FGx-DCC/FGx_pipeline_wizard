@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from _typeshed import StrPath
 
 
-class AbsolutePath(Path):
+class _AbsolutePath(Path):
     """An absolute path (from root)."""
 
     def __init__(self, *pathsegments: StrPath) -> None:
@@ -30,22 +30,22 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "scripts_directory",
         help="The absolute/relative path to where scripts for pipeline are",
-        type=AbsolutePath,
+        type=_AbsolutePath,
     )
     parser.add_argument(
         "pipelines_directory",
         help="The absolute/relative path containing pipeline .toml files",
-        type=AbsolutePath,
+        type=_AbsolutePath,
     )
     parser.add_argument(
         "config_file",
         help="Where to output the configuration file to.",
-        type=AbsolutePath,
+        type=_AbsolutePath,
     )
     parser.add_argument(
         "run_script",
         help="Where to output the run.sh pipeline wrapper script to.",
-        type=AbsolutePath,
+        type=_AbsolutePath,
     )
     return parser
 
@@ -54,7 +54,7 @@ class PipelineWizardArgs(argparse.Namespace):
     """The arguments for pipeline_wizard (for lsp)."""
 
     debug: bool
-    scripts_directory: AbsolutePath
-    pipelines_directory: AbsolutePath
-    config_file: AbsolutePath
-    run_script: AbsolutePath
+    scripts_directory: _AbsolutePath
+    pipelines_directory: _AbsolutePath
+    config_file: _AbsolutePath
+    run_script: _AbsolutePath

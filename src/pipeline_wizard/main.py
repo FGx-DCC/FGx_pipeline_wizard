@@ -28,9 +28,9 @@ def run(  # noqa: C901
     # \\
     # Preliminary checks
     # //
-    cleanup_previous_run(args.config_file, args.run_script)
-    validate_directory_existence(args.scripts_directory, "Scripts directory")
-    validate_directory_existence(
+    _cleanup_previous_run(args.config_file, args.run_script)
+    _validate_directory_existence(args.scripts_directory, "Scripts directory")
+    _validate_directory_existence(
         args.pipelines_directory, "Pipelines directory"
     )
 
@@ -184,7 +184,7 @@ def run(  # noqa: C901
     tell(f"Created configuration file at {args.config_file}", ANSIColors.GREEN)
 
 
-def validate_directory_existence(
+def _validate_directory_existence(
     directory_path: Path, directory_name: str
 ) -> None:
     """Check a path is a valid directory and exists.
@@ -203,7 +203,7 @@ def validate_directory_existence(
         """)
 
 
-class FileDeletionResult(Enum):
+class _FileDeletionResult(Enum):
     """Result of deleting a file."""
 
     DELETED = auto()
@@ -211,7 +211,7 @@ class FileDeletionResult(Enum):
     NOTHING_TO_DELETE = auto()
 
 
-def cleanup_previous_run(config_file: Path, run_script: Path) -> None:
+def _cleanup_previous_run(config_file: Path, run_script: Path) -> None:
     """Remove the config + run script if users want to overwrite them.
 
     In the event that neither file is to be overwritten, then there is nothing
@@ -219,7 +219,7 @@ def cleanup_previous_run(config_file: Path, run_script: Path) -> None:
 
     """
 
-    def delete_file(path: Path, file_name: str) -> FileDeletionResult:
+    def delete_file(path: Path, file_name: str) -> _FileDeletionResult:
         """Delete a file if it exists and user wants to delete it.
 
         If a file couldn't be deleted (some error such as a permissions error),
@@ -231,20 +231,20 @@ def cleanup_previous_run(config_file: Path, run_script: Path) -> None:
             {file_name} already exists at {path}, would you like to delete it?
             """)
             if not delete_file:
-                return FileDeletionResult.KEPT
+                return _FileDeletionResult.KEPT
             try:
                 path.unlink()
-                return FileDeletionResult.DELETED
+                return _FileDeletionResult.DELETED
             except OSError as exc:
                 exit_with_message(f"Could not remove {file_name}: ({exc})")
-        return FileDeletionResult.NOTHING_TO_DELETE
+        return _FileDeletionResult.NOTHING_TO_DELETE
 
     config_deleted = delete_file(config_file, "configuration file")
     run_script_deleted = delete_file(run_script, "run.sh")
 
     if (
-        config_deleted == FileDeletionResult.KEPT
-        and run_script_deleted == FileDeletionResult.KEPT
+        config_deleted == _FileDeletionResult.KEPT
+        and run_script_deleted == _FileDeletionResult.KEPT
     ):
         exit_with_message(
             "Both config and run.sh exist and were not deleted, nothing to do",
@@ -252,8 +252,8 @@ def cleanup_previous_run(config_file: Path, run_script: Path) -> None:
         )
 
     if (
-        config_deleted == FileDeletionResult.KEPT
-        and run_script_deleted == FileDeletionResult.DELETED
+        config_deleted == _FileDeletionResult.KEPT
+        and run_script_deleted == _FileDeletionResult.DELETED
     ):
         tell(
             """
