@@ -4,14 +4,14 @@ import sys
 from enum import Enum, auto
 from itertools import chain
 from pathlib import Path
-from shutil import copyfileobj
 from typing import NoReturn
-from urllib.error import HTTPError
-from urllib.parse import urlparse
-from urllib.request import urlopen
 
 from pipeline_wizard.config_builder import ConfigBuilder
-from pipeline_wizard.dag import Dag, Parameter, Requirement
+from pipeline_wizard.dag import Dag
+from pipeline_wizard.prompts import (
+    prompt_for_parameter_value,
+    prompt_for_requirement_path,
+)
 from pipeline_wizard.run_builder import RunBuilder
 from pipeline_wizard.wizard import (
     ANSIColors,
@@ -182,134 +182,6 @@ def run(  # noqa: C901
 
     config_builder.write_config_file(config_file)
     tell(f"Created configuration file at {config_file}", ANSIColors.GREEN)
-
-
-def prompt_for_requirement_path(requirement: Requirement) -> Path:
-    """Get a requirement path for a requirement.
-
-    If the requirement doesn't exist on disk and the requirement instructions
-    is in the form of a URL, the file will be downloaded (and then this
-    function will return the path to the downloaded file).
-
-    """
-    while True:
-        user_has_file = ask_bool(f"""
-            This pipeline requires the file '{requirement.name}'.
-            Do you have this file already?
-        """)
-
-        if user_has_file:
-            requirement_path = Path(
-                ask(
-                    f"""
-                    Please provide an absolute/relative path to the file:
-                        '{requirement.name}'
-                    """,
-                    return_type=str,
-                )
-            ).resolve()
-            if requirement_path.exists():
-                return requirement_path
-            else:
-                tell(
-                    f"This path ({requirement_path}) does not exist...",
-                    ANSIColors.YELLOW,
-                )
-        else:
-            break
-
-    # likely semantic instructions
-    if urlparse(requirement.instructions).scheme not in {
-        "http",
-        "https",
-        "ftp",
-    }:
-        tell(f"""
-             Pipeline instructions say, for '{requirement.name}', you need to:
-
-             {requirement.instructions}
-
-             Please make sure you complete this and add the path to
-             '{requirement.name.upper()}' in the configuration file before
-             running the pipeline.
-             ---
-        """)
-        return Path()
-
-    should_download = ask_bool(f"""
-        Would you like to download the requirement now?
-        (from: {requirement.instructions})
-    """)
-
-    if should_download:
-        destination = Path(
-            ask(
-                "Where do you want to download to? (directory or full path)",
-                return_type=str,
-                default=f"./{requirement.name}",
-            )
-        )
-        try:
-            return download_file(
-                requirement.instructions, destination, requirement.name
-            )
-        except (HTTPError, ValueError) as exc:
-            tell(
-                f"Failed to download file from {destination} ({exc})...",
-                ANSIColors.RED,
-            )
-
-    tell(f"""
-         Please make sure you download this file yourself and add the path
-         to '{requirement.name.upper()}' in the configuration file before
-         running the pipeline.
-         ---
-    """)
-    return Path()
-
-
-def download_file(url: str, destination: Path, default_file_name: str) -> Path:
-    """Attempt to download a file to some path."""
-    if destination.is_dir():
-        destination = destination / default_file_name
-
-    parsed = urlparse(url)
-    if parsed.scheme not in ("http", "https", "ftp"):
-        raise ValueError(
-            f"Unsupported scheme for downloading: {parsed.scheme!r}"
-        )
-
-    with (
-        urlopen(url, timeout=30) as response,
-        open(destination, "wb") as out_file,
-    ):
-        copyfileobj(response, out_file)
-
-    return destination
-
-
-def prompt_for_parameter_value(parameter: Parameter) -> int | str:
-    """Get a parameter value from the user."""
-    default = parameter.default
-
-    # A list for the default means this is a set of choices the user can make
-    if isinstance(default, list):
-        choices = default
-        index = ask(
-            f"Pick a value for {parameter.name}",
-            choices=[str(choice) for choice in choices],
-        )
-        return choices[index]
-
-    message = f"Choose a value for {parameter.name}"
-
-    if isinstance(default, bool):
-        return ask_bool(message)
-
-    if isinstance(default, int):
-        return ask(message, return_type=int, default=default)
-
-    return ask(message, return_type=str, default=default)
 
 
 def validate_directory_existence(
