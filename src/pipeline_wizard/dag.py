@@ -133,6 +133,11 @@ class Dag:
         data["file_path"] = path
         return cls._from_dict(data, script_directory, dag_directory)
 
+    @property
+    def empty(self) -> bool:
+        """Returns True if pipeline has no steps."""
+        return len(self.steps) == 0
+
     @cached_property
     def steps(self) -> list[Step]:
         """Layers of scripts that can be ran in parallel.
@@ -157,7 +162,7 @@ class Dag:
 
     def print_diagram(self) -> None:
         """Print the pipeline top-down as layers of boxes."""
-        if len(self.steps) == 0:
+        if self.empty:
             print("Pipeline is empty...")
             return
 
