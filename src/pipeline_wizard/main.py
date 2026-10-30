@@ -52,6 +52,8 @@ def run(  # noqa: C901
             )
             for pipeline in pipelines
         ]
+        # check pipelines are valid dags
+        [pipeline.steps for pipeline in parsed_pipelines]
     except (NotADagError, PipelineParseError) as exc:
         exit_with_message(f"{exc}")
 
