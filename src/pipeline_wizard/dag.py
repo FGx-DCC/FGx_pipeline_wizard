@@ -367,11 +367,12 @@ class Dag:
             )
             script_dependencies[name] = after
 
+        known_names = script_dependencies.keys() | aliases.keys()
         unknown_dependencies = {
             dependency
             for dependencies in script_dependencies.values()
             for dependency in dependencies
-        } - script_dependencies.keys()
+        } - known_names
         if unknown_dependencies:
             raise PipelineParseError(
                 f"Unknown dependencies: {sorted(unknown_dependencies)}",
