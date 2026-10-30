@@ -1,8 +1,8 @@
-"""Writer for run.sh (entry point for pipeline)."""
-
-from pathlib import Path
+"""Writer for pipeline wrapper script (entry point for pipeline)."""
 
 import os
+from pathlib import Path
+
 from pipeline_wizard.dag import Dag, Step
 
 

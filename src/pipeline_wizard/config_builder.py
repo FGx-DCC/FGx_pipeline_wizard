@@ -1,4 +1,4 @@
-"""Writer for configuration file for run.sh."""
+"""Writer for configuration file."""
 
 import shlex
 from pathlib import Path

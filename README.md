@@ -1,8 +1,8 @@
 # FGx Pipeline Wizard
 
-This is a python package used by FGx pipelines to generate a single script
-(`run.sh`) to execute all scripts that make up a pipeline (with accompanying
-configuration file).
+This is a python package used by FGx pipelines to generate a single wrapper
+script (*i.e.* `run.sh`) to execute all scripts that make up a pipeline (with
+accompanying configuration file).
 
 ## Contents
 
@@ -85,11 +85,12 @@ to generate a shell script they can execute like any other.
 - The user can then input any variables that scripts need (which is written to
   a configuration file, which set environment variables for shell scripts to
   use)
-- A `run.sh` and configuration file is generated, which can be ran using bash.
+- A wrapper shell script to run the pipeline with accompanying configuration
+  file is generated, which can be ran using bash.
 
-A user is capable of changing the `run.sh` or configuration file themselves
-manually, but they may not be comfortable with this. For this reason, the user
-may want to rerun this tool to update these files.
+A user is capable of changing the wrapper script or configuration file
+themselves manually, but they may not be comfortable with this. For this
+reason, the user may want to rerun this tool to update these files.
 
 ## toml format for pipelines
 

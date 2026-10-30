@@ -25,7 +25,7 @@ from pipeline_wizard.wizard import (
 def run(  # noqa: C901
     args: PipelineWizardArgs,
 ) -> None:
-    """Run the wizard to create run.sh and accompanying config file."""
+    """Run the wizard to create wrapper script and accompanying config file."""
     # \\
     # Preliminary checks
     # //
@@ -123,9 +123,9 @@ def run(  # noqa: C901
 
     if chosen_pipeline.empty:
         exit_with_message(
-            """
+            f"""
             You removed all steps from the pipeline
-            there is nothing to write to run.sh...
+            there is nothing to write to {args.run_script}...
             """,
             exit_code=0,
         )
@@ -260,14 +260,17 @@ def _cleanup_previous_run(config_file: Path, run_script: Path) -> None:
         return _FileDeletionResult.NOTHING_TO_DELETE
 
     config_deleted = delete_file(config_file, "configuration file")
-    run_script_deleted = delete_file(run_script, "run.sh")
+    run_script_deleted = delete_file(run_script, "pipeline wrapper script")
 
     if (
         config_deleted == _FileDeletionResult.KEPT
         and run_script_deleted == _FileDeletionResult.KEPT
     ):
         exit_with_message(
-            "Both config and run.sh exist and were not deleted, nothing to do",
+            """
+            Both config and pipeline wrapper scirpt exist and were not deleted,
+            nothing to do...
+            """,
             exit_code=0,
         )
 

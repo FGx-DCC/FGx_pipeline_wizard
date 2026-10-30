@@ -9,7 +9,10 @@ def build_parser() -> argparse.ArgumentParser:
     """Argument parsing for the pipeline wizard CLI."""
     parser = argparse.ArgumentParser(
         prog="pipeline_wizard",
-        description="A tool to generate pipeline wrappers from toml files",
+        description=(
+            "A tool to generate pipeline wrappers and configuration file from "
+            "toml files"
+        ),
     )
     parser.add_argument(
         "-d",
@@ -38,8 +41,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "run_script",
         help=(
-            "Where to output the run.sh pipeline wrapper script to (if "
-            "exists, user can delete to overwrite)."
+            "Where to output the pipeline wrapper script to (if exists, user "
+            "can delete to overwrite)."
         ),
         type=AbsolutePath,
     )
