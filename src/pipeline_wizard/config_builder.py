@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from pipeline_wizard.dag import Parameter, Requirement
+import shlex
 
 
 class ConfigBuilder:
@@ -44,7 +45,7 @@ class ConfigBuilder:
             return
 
         if isinstance(value, str):
-            value = f'"{value}"'
+            value = shlex.quote(value)
         if isinstance(value, bool):
             value = "TRUE" if value else "FALSE"
 
