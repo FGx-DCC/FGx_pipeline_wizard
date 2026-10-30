@@ -9,6 +9,7 @@ from graphlib import CycleError, TopologicalSorter
 from pathlib import Path
 
 from pipeline_wizard.exceptions import NotADagError, PipelineParseError
+from pipeline_wizard.wizard import ANSIColors, tell
 
 
 @dataclass
@@ -336,7 +337,10 @@ class Dag:
                 # We only print a warning here as this isn't really the user's
                 # fault. It is more likely that the pipeline file was written
                 # poorly and so a warning helps the user with raising an issue.
-                print(f"WARNING: {full_script_path} does not exist!")
+                tell(
+                    f"WARNING: {full_script_path} does not exist!",
+                    ANSIColors.YELLOW,
+                )
 
             scripts[name] = Script(
                 name=name,
