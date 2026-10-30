@@ -1,11 +1,10 @@
 """Main entry point for config wizard."""
 
-import sys
 from enum import Enum, auto
 from itertools import chain
 from pathlib import Path
-from typing import NoReturn
 
+from pipeline_wizard.cli_parser import PipelineWizardArgs
 from pipeline_wizard.config_builder import ConfigBuilder
 from pipeline_wizard.dag import Dag
 from pipeline_wizard.prompts import (
@@ -23,32 +22,33 @@ from pipeline_wizard.wizard import (
 
 
 def run(  # noqa: C901
-    scripts_directory: Path,
-    pipelines_directory: Path,
-    config_file: Path,
-    run_script: Path,
+    args: PipelineWizardArgs,
 ) -> None:
     """Run the wizard to create run.sh and accompanying config file."""
     # \\
     # Preliminary checks
     # //
-    cleanup_previous_run(config_file, run_script)
-    validate_directory_existence(scripts_directory, "Scripts directory")
-    validate_directory_existence(pipelines_directory, "Pipelines directory")
+    cleanup_previous_run(args.config_file, args.run_script)
+    validate_directory_existence(args.scripts_directory, "Scripts directory")
+    validate_directory_existence(
+        args.pipelines_directory, "Pipelines directory"
+    )
 
     # \\
     # Obtain the pipeline the user wants to build from
     # //
-    pipelines = list(pipelines_directory.glob("*.toml"))
+    pipelines = list(args.pipelines_directory.glob("*.toml"))
     if pipelines == []:
         exit_with_message(f"""
-            No pipelines could be found in {pipelines_directory}
+            No pipelines could be found in {args.pipelines_directory}
             Please raise an issue
         """)
 
     try:
         parsed_pipelines = [
-            Dag.from_toml(pipeline, scripts_directory, pipelines_directory)
+            Dag.from_toml(
+                pipeline, args.scripts_directory, args.pipelines_directory
+            )
             for pipeline in pipelines
         ]
     except (ValueError, RuntimeError) as exc:
@@ -132,7 +132,7 @@ def run(  # noqa: C901
     # //
     config_builder = ConfigBuilder()
     run_script_builder = RunBuilder(
-        scripts_directory, config_file, chosen_pipeline
+        args.scripts_directory, args.config_file, chosen_pipeline
     )
 
     all_parameters = chain(
@@ -150,11 +150,11 @@ def run(  # noqa: C901
     for step in pipeline_steps:
         run_script_builder.add_pipeline_step(step)
 
-    if not run_script.exists():
-        run_script_builder.write_run_script(run_script)
-        tell(f"Created run script at {run_script}", ANSIColors.GREEN)
+    if not args.run_script.exists():
+        run_script_builder.write_run_script(args.run_script)
+        tell(f"Created run script at {args.run_script}", ANSIColors.GREEN)
 
-    if config_file.exists():
+    if args.config_file.exists():
         return
 
     tell("""
@@ -180,8 +180,8 @@ def run(  # noqa: C901
             requirement, prompt_for_requirement_path(requirement)
         )
 
-    config_builder.write_config_file(config_file)
-    tell(f"Created configuration file at {config_file}", ANSIColors.GREEN)
+    config_builder.write_config_file(args.config_file)
+    tell(f"Created configuration file at {args.config_file}", ANSIColors.GREEN)
 
 
 def validate_directory_existence(
@@ -263,36 +263,3 @@ def cleanup_previous_run(config_file: Path, run_script: Path) -> None:
             """,
             ANSIColors.YELLOW,
         )
-
-
-def usage(exit_code: int) -> NoReturn:
-    """Print tool usage and exit."""
-    exit_with_message(
-        f"{ANSIColors.GREEN}Usage: pipeline_wizard scripts_directory "
-        f"pipelines_directory out_config.txt run.sh{ANSIColors.RESET}",
-        exit_code=exit_code,
-    )
-
-
-def main() -> None:
-    """Entry point."""
-    if len(sys.argv) >= 2 and (sys.argv[1] == "-h" or sys.argv[1] == "--help"):
-        usage(exit_code=0)
-    if len(sys.argv) != 5:
-        usage(exit_code=2)
-    scripts_directory = Path(sys.argv[1]).resolve()
-    pipelines_directory = Path(sys.argv[2]).resolve()
-    config_file = Path(sys.argv[3]).resolve()
-    run_script = Path(sys.argv[4]).resolve()
-    try:
-        run(scripts_directory, pipelines_directory, config_file, run_script)
-    except Exception as exc:
-        print(f"FATAL ERROR occurred: {exc}", file=sys.stderr)
-        print_debug = ask_bool("Do you want full traceback?")
-        if print_debug:
-            raise  # reraise and let propagate up
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()

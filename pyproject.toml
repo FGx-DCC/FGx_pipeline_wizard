@@ -9,7 +9,7 @@ readme = "README.md"
 requires-python = ">=3.15"
 
 [project.scripts]
-pipeline_wizard = "pipeline_wizard.main:main"
+pipeline_wizard = "pipeline_wizard.cli:cli"
 
 [tool.ruff]
 line-length=79
