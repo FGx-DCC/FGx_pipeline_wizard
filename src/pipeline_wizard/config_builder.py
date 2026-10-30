@@ -66,6 +66,7 @@ class ConfigBuilder:
                 f"# Fill below using: {requirement.instructions}"
             )
             self._contents.append(f"export {requirement.name.upper()}=")
+            return
 
         self._contents.append(
             f'export {requirement.name.upper()}="{str(requirement_path)}"'
