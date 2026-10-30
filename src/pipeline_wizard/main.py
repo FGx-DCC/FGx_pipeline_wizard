@@ -121,6 +121,15 @@ def run(  # noqa: C901
         else:
             chosen_pipeline = chosen_pipeline.prune(option_chosen)
 
+    if chosen_pipeline.empty:
+        exit_with_message(
+            """
+            You removed all steps from the pipeline
+            there is nothing to write to run.sh...
+            """,
+            exit_code=0,
+        )
+
     pipeline_steps = chosen_pipeline.steps
     # ±1 due to 1/0 based indexing switch
     start = ask(
