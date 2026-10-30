@@ -46,7 +46,7 @@ class ConfigBuilder:
             return
 
         if isinstance(value, str):
-            value = shlex.quote(value)
+            value = f'"{shlex.quote(value)}"'
         if isinstance(value, bool):
             value = "TRUE" if value else "FALSE"
 
