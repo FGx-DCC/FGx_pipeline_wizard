@@ -74,12 +74,11 @@ to generate a shell script they can execute like any other.
 
 ## Idea
 
-- A user can select from a set of pipelines (or create their own)
+- A user can select from a set of pipelines
 - The user can then remove branches of the pipeline they don't need (perhaps
   they don't need to run fastqc on their files as this is already done)
 - The user can also choose to start from any step in the pipeline (in case of a
-  previous run failing perhaps) and also end prematurely (if later steps aren't
-  required for their experiment)
+  previous run failing perhaps)
 - The user is then told which external files are required (and optional
   downloads can occur if files are missing)
 - The user can then input any variables that scripts need (which is written to
