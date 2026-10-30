@@ -65,6 +65,8 @@ class RunBuilder:
                 if dependency_job_names != []
                 else ""
             )
+            opts += " --parsable"
+
             self._contents.append("")
 
             description = (
@@ -74,7 +76,7 @@ class RunBuilder:
             )
             self._contents.append(f"# {script.name} -> {description}")
             self._contents.append(
-                f"{job_name}=$(sbatch {opts} {full_script_path} | awk '{{print $4}}')"  # noqa: E501
+                f"{job_name}=$(sbatch {opts} {full_script_path})"  # noqa: E501
             )
         self._contents.append("")
 
