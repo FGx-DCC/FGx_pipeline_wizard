@@ -1,7 +1,7 @@
 """User prompts for the pipeline wizard."""
 
 from pathlib import Path
-from urllib.error import HTTPError
+from urllib.error import URLError
 from urllib.parse import urlparse
 
 from pipeline_wizard.dag import Parameter, Requirement
@@ -83,9 +83,9 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
             return download_file(
                 requirement.instructions, destination, requirement.name
             )
-        except (HTTPError, ValueError) as exc:
+        except (URLError, ValueError, OSError) as exc:
             tell(
-                f"Failed to download file from {destination} ({exc})...",
+                f"Failed to download file to {destination} ({exc})...",
                 ANSIColors.RED,
             )
 
