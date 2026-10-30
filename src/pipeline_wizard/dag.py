@@ -345,9 +345,9 @@ class Dag:
             expanded: set[str] = set()
             for dependency in node_dependencies:
                 expanded |= aliases.get(dependency, {dependency})
-            script_dependencies[node] = expanded
+            script_dependencies[node] = sorted(expanded)
             scripts[node].dependencies = [
-                scripts[dependency] for dependency in expanded
+                scripts[dependency] for dependency in sorted(expanded)
             ]
 
         unknown_dependencies = {
