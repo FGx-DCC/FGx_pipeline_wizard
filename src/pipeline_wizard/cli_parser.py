@@ -29,12 +29,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "config_file",
-        help="Where to output the configuration file to.",
+        help=(
+            "Where to output the configuration file to (if exists, user can "
+            "delete to overwrite)."
+        ),
         type=AbsolutePath,
     )
     parser.add_argument(
         "run_script",
-        help="Where to output the run.sh pipeline wrapper script to.",
+        help=(
+            "Where to output the run.sh pipeline wrapper script to (if "
+            "exists, user can delete to overwrite)."
+        ),
         type=AbsolutePath,
     )
     return parser
