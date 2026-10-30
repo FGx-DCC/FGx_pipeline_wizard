@@ -1,6 +1,5 @@
 """Writer for configuration file."""
 
-import shlex
 from pathlib import Path
 
 from pipeline_wizard.dag import Parameter, Requirement
