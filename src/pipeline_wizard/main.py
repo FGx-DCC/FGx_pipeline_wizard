@@ -219,7 +219,11 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path:
             break
 
     # likely semantic instructions
-    if urlparse(requirement.instructions).scheme == "":
+    if urlparse(requirement.instructions).scheme not in {
+        "http",
+        "https",
+        "ftp",
+    }:
         tell(f"""
              Pipeline instructions say, for '{requirement.name}', you need to:
 
