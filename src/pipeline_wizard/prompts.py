@@ -1,11 +1,11 @@
 """User prompts for the pipeline wizard."""
 
-from pathlib import Path
 from urllib.error import URLError
 from urllib.parse import urlparse
 
 from pipeline_wizard.dag import Parameter, Requirement
 from pipeline_wizard.download import download_file
+from pipeline_wizard.types import AbsolutePath
 from pipeline_wizard.wizard import (
     ANSIColors,
     ask,
@@ -16,7 +16,9 @@ from pipeline_wizard.wizard import (
 TODO = sentinel("TODO")
 
 
-def prompt_for_requirement_path(requirement: Requirement) -> Path | TODO:
+def prompt_for_requirement_path(
+    requirement: Requirement,
+) -> AbsolutePath | TODO:
     """Get a requirement path for a requirement.
 
     If the requirement doesn't exist on disk and the requirement instructions
@@ -35,7 +37,7 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path | TODO:
         """)
 
         if user_has_file:
-            requirement_path = Path(
+            requirement_path = AbsolutePath(
                 ask(
                     f"""
                     Please provide an absolute/relative path to the file:
@@ -43,7 +45,7 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path | TODO:
                     """,
                     return_type=str,
                 )
-            ).resolve()
+            )
             if requirement_path.exists():
                 return requirement_path
             else:
@@ -78,7 +80,7 @@ def prompt_for_requirement_path(requirement: Requirement) -> Path | TODO:
     """)
 
     if should_download:
-        destination = Path(
+        destination = AbsolutePath(
             ask(
                 "Where do you want to download to? (directory or full path)",
                 return_type=str,

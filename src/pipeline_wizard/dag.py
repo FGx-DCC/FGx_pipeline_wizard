@@ -9,6 +9,7 @@ from graphlib import CycleError, TopologicalSorter
 from pathlib import Path
 
 from pipeline_wizard.exceptions import NotADagError, PipelineParseError
+from pipeline_wizard.types import AbsolutePath
 from pipeline_wizard.wizard import ANSIColors, tell
 
 
@@ -335,8 +336,8 @@ class Dag:
                     dag_data.get("file_path", "unknown_path"),
                 )
 
-            full_script_path: Path = (
-                script_directory.resolve() / specification["path"]
+            full_script_path: AbsolutePath = (
+                AbsolutePath(script_directory) / specification["path"]
             )
             if not full_script_path.exists():
                 # We only print a warning here as this isn't really the user's

@@ -1,10 +1,9 @@
 """Writer for configuration file for run.sh."""
 
+import shlex
 from pathlib import Path
 
 from pipeline_wizard.dag import Parameter, Requirement
-import shlex
-
 from pipeline_wizard.prompts import TODO
 
 
