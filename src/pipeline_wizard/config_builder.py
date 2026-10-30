@@ -46,8 +46,14 @@ class ConfigBuilder:
             return
 
         if isinstance(value, str):
-            value = f'"{shlex.quote(value)}"'
-        if isinstance(value, bool):
+            escaped = (
+                value.replace("\\", "\\\\")
+                .replace('"', '\\"')
+                .replace("$", "\\$")
+                .replace("`", "\\`")
+            )
+            value = f'"{escaped}"'
+        elif isinstance(value, bool):
             value = "TRUE" if value else "FALSE"
 
         self.parameters.add(parameter.name)
