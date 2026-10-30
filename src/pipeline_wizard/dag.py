@@ -341,15 +341,6 @@ class Dag:
             )
             script_dependencies[name] = after
 
-        for node, node_dependencies in script_dependencies.items():
-            expanded: set[str] = set()
-            for dependency in node_dependencies:
-                expanded |= aliases.get(dependency, {dependency})
-            script_dependencies[node] = expanded
-            scripts[node].dependencies = [
-                scripts[dependency] for dependency in sorted(expanded)
-            ]
-
         unknown_dependencies = {
             dependency
             for dependencies in script_dependencies.values()
@@ -359,6 +350,15 @@ class Dag:
             raise ValueError(
                 f"Unknown dependencies: {sorted(unknown_dependencies)}"
             )
+
+        for node, node_dependencies in script_dependencies.items():
+            expanded: set[str] = set()
+            for dependency in node_dependencies:
+                expanded |= aliases.get(dependency, {dependency})
+            script_dependencies[node] = expanded
+            scripts[node].dependencies = [
+                scripts[dependency] for dependency in sorted(expanded)
+            ]
 
         return cls(
             name=dag_data.get("name", "unnamed_pipeline"),
