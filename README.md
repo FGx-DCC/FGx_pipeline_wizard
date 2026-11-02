@@ -32,10 +32,11 @@ First you will need:
 - [python(>=3.15)](https://www.python.org/)
   - It is recommended to create a
     [conda](https://github.com/conda-forge/miniforge) environment (or
-    equivalent) for python, so that the installation doesn't crowd system
-    python.
-  - 3.15 is quite a recent version, so conda is probably required. Some 3.15
-    features are used, hence the requirement.
+    equivalent, such as `uv`,`pixi`,`poetry`) for python, so that the package
+    installation doesn't crowd your system python.
+  - 3.15 is quite a recent version, so conda is likely a requirement anyways
+    (system python probably isn't >=3.15). Some 3.15 features are used so this
+    is indeed a requirement.
 
 ```bash
 # Optionally create a conda environment first
