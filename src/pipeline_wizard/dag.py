@@ -96,36 +96,8 @@ class Dag:
     ) -> Dag:
         """Read DAG from a toml file.
 
-        Example toml file::
-
-            name = "Test Pipeline"
-            description = "A test pipeline with read, clean and write steps"
-
-            [parameters]
-            out_directory = "/path/to/output/directory/"
-            keep_temporary = false
-
-            [steps.read]
-            path = "read.sh"
-            description = "Read the data from a file and convert to pandas"
-
-            [steps.clean]
-            path = "clean.sh"
-            description = "Use interpolation to remove missingness"
-            after = ["read"]
-            [steps.clean.requires]
-            reference = "https://www.example.com/reference"
-            [steps.clean.parameters]
-            max_distance = 5
-            tool_version = ["v1","v2"]
-
-            [steps.write]
-            path = "write.sh"
-            after = ["clean"]
-
-            [steps.report]
-            dag = "report.toml" # report.toml looks like this one
-            after = ["write"]
+        View the README at repository root for an example of the toml format
+        expected here.
 
         """
         with path.open("rb") as dag_toml:
