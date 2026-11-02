@@ -1,3 +1,14 @@
+<p align="center">
+  <img width="200" height="200" src="logo.svg" />
+</p>
+
+<p align="center">
+    <a href="https://github.com/FGx-DCC/FGx_pipeline_wizard/actions/workflows/test.yml" alt="Test status">
+      <img src="https://img.shields.io/github/actions/workflow/status/FGx-DCC/FGx_pipeline_wizard/test.yml?style=for-the-badge&label=tests&color=green" /></a>
+    <a href="https://github.com/FGx-DCC/FGx_pipeline_wizard/blob/main/LICENSE" alt="License">
+        <img src="https://img.shields.io/github/license/FGx-DCC/FGx_pipeline_wizard?style=for-the-badge&color=green" /></a>
+</p>
+
 # FGx Pipeline Wizard
 
 This is a python package used by FGx pipelines to generate a single wrapper
