@@ -5,8 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from pipeline_wizard.dag import Dag
-from pipeline_wizard.exceptions import NotADagError, PipelineParseError
+from pipeline_wizard.dag import Dag, Parameter, Requirement
+from pipeline_wizard.exceptions import (
+    NotADagError,
+    NotUpperError,
+    PipelineParseError,
+)
 
 CHAIN = """
 name = "Chain"
@@ -44,6 +48,38 @@ after = ["b", "c"]
 
 def _names(dag: Dag) -> list[list[str]]:
     return [[script.name for script in step] for step in dag.steps]
+
+
+@pytest.mark.parametrize("name", ["lower", "Title", "aLMOST_UPPER"])
+def test_parameter_wont_accept_lower_case(name: str) -> None:
+    """Should only accept parameters with upper case names.
+
+    Given:
+        A non capitalised string.
+    When:
+        A Parameter object is initialised with said string as name.
+    Then:
+        An NotUpperError is raised.
+
+    """
+    with pytest.raises(NotUpperError):
+        Parameter(name, default="valid")
+
+
+@pytest.mark.parametrize("name", ["lower", "Title", "aLMOST_UPPER"])
+def test_requirement_wont_accept_lower_case(name: str) -> None:
+    """Should only accept requirements with upper case names.
+
+    Given:
+        A non capitalised string.
+    When:
+        A Requirement object is initialised with said string as name.
+    Then:
+        An NotUpperError is raised.
+
+    """
+    with pytest.raises(NotUpperError):
+        Requirement(name, instructions="valid")
 
 
 def test_reads_pipeline_metadata(make_dag: Callable[..., Dag]) -> None:
