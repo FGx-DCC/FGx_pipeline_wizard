@@ -68,7 +68,7 @@ def prompt_for_requirement_path(
              {requirement.instructions}
 
              Please make sure you complete this and add the path to
-             '{requirement.name.upper()}' in the configuration file before
+             '{requirement.name}' in the configuration file before
              running the pipeline.
              ---
         """)
@@ -102,7 +102,7 @@ def prompt_for_requirement_path(
 
     tell(f"""
          Please make sure you download this file yourself and add the path
-         to '{requirement.name.upper()}' in the configuration file before
+         to '{requirement.name}' in the configuration file before
          running the pipeline.
          ---
     """)

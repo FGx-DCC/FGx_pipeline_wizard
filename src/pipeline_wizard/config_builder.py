@@ -56,7 +56,7 @@ class ConfigBuilder:
             value = "true" if value else "false"
 
         self.parameters.add(parameter.name)
-        self._contents.append(f"export {parameter.name.upper()}={value}")
+        self._contents.append(f"export {parameter.name}={value}")
 
     def add_requirement_path_pair(
         self, requirement: Requirement, requirement_path: Path | TODO
@@ -70,11 +70,11 @@ class ConfigBuilder:
             self._contents.append(
                 f"# Fill below using: {requirement.instructions}"
             )
-            self._contents.append(f"export {requirement.name.upper()}=")
+            self._contents.append(f"export {requirement.name}=")
             return
 
         self._contents.append(
-            f'export {requirement.name.upper()}="{str(requirement_path)}"'
+            f'export {requirement.name}="{str(requirement_path)}"'
         )
 
     def write_config_file(self, out_path: Path) -> None:
