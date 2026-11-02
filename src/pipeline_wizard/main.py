@@ -163,7 +163,10 @@ def run(  # noqa: C901
         _build_config_file(config_builder, all_parameters, all_requirements)
         config_builder.write_config_file(args.config_file)
         tell(
-            f"Created configuration file at {args.config_file}",
+            f"""
+            Created configuration file at {args.config_file}.
+            PLEASE CHECK THIS FILE BEFORE RUNNING!
+            """,
             ANSIColors.GREEN,
         )
 
