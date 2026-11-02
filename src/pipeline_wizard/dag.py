@@ -8,7 +8,11 @@ from functools import cached_property
 from graphlib import CycleError, TopologicalSorter
 from pathlib import Path
 
-from pipeline_wizard.exceptions import NotADagError, PipelineParseError
+from pipeline_wizard.exceptions import (
+    NotADagError,
+    NotUpperError,
+    PipelineParseError,
+)
 from pipeline_wizard.types import AbsolutePath
 from pipeline_wizard.wizard import ANSIColors, tell
 
@@ -18,10 +22,19 @@ class Parameter:
     """Represents a configuration parameter (such as a file path)."""
 
     name: str
-    """The name of the parameter (to put into the config file)."""
+    """The name of the parameter (to put into the config file).
+
+    This must be capitalised.
+
+    """
 
     default: str | int | bool | list[str] | list[int]
     """The default value used for the parameter."""
+
+    def __post_init__(self) -> None:
+        """Raise if name is not upper case."""
+        if self.name != self.name.upper():
+            raise NotUpperError(self.name)
 
 
 @dataclass
@@ -29,7 +42,11 @@ class Requirement:
     """Represents an external requirement for the pipeline (a reference)."""
 
     name: str
-    """The name of the requirement (to put into the config file)"""
+    """The name of the requirement (to put into the config file).
+
+    This must be capitalised.
+
+    """
 
     instructions: str
     """Instructions or a URL on how to get said requirement.
@@ -38,6 +55,11 @@ class Requirement:
     be retrieved via said URL.
 
     """
+
+    def __post_init__(self) -> None:
+        """Raise if name is not upper case."""
+        if self.name != self.name.upper():
+            raise NotUpperError(self.name)
 
 
 @dataclass
@@ -229,7 +251,7 @@ class Dag:
         return list(self._scripts.keys())
 
     @classmethod
-    def _from_dict(
+    def _from_dict(  # noqa: C901
         cls, dag_data: dict, script_directory: Path, dag_directory: Path
     ) -> Dag:
         """Construct a DAG from a dictionary.
@@ -248,10 +270,15 @@ class Dag:
         # dependencies for steps dependent on the dag as a whole)
         aliases: dict[str, set[str]] = {}
 
-        global_parameters = {
-            name: Parameter(name, default)
-            for name, default in dag_data.get("parameters", {}).items()
-        }
+        try:
+            global_parameters = {
+                name: Parameter(name, default)
+                for name, default in dag_data.get("parameters", {}).items()
+            }
+        except NotUpperError as exc:
+            raise PipelineParseError(
+                f"{exc}", dag_data.get("file_path", "unknown_path")
+            ) from exc
 
         for name, specification in dag_data.get("steps", {}).items():
             after = specification.get("after", [])
@@ -320,23 +347,28 @@ class Dag:
                     ANSIColors.YELLOW,
                 )
 
-            scripts[name] = Script(
-                name=name,
-                path=full_script_path,
-                description=specification.get("description", ""),
-                requires={
-                    name: Requirement(name, instructions)
-                    for name, instructions in specification.get(
-                        "requires", {}
-                    ).items()
-                },
-                parameters={
-                    name: Parameter(name, value)
-                    for name, value in specification.get(
-                        "parameters", {}
-                    ).items()
-                },
-            )
+            try:
+                scripts[name] = Script(
+                    name=name,
+                    path=full_script_path,
+                    description=specification.get("description", ""),
+                    requires={
+                        name: Requirement(name, instructions)
+                        for name, instructions in specification.get(
+                            "requires", {}
+                        ).items()
+                    },
+                    parameters={
+                        name: Parameter(name, value)
+                        for name, value in specification.get(
+                            "parameters", {}
+                        ).items()
+                    },
+                )
+            except NotUpperError as exc:
+                raise PipelineParseError(
+                    f"{exc}", dag_data.get("file_path", "unknown_path")
+                ) from exc
             script_dependencies[name] = after
 
         known_names = script_dependencies.keys() | aliases.keys()

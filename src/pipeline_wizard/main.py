@@ -7,7 +7,11 @@ from pathlib import Path
 from pipeline_wizard.cli_parser import PipelineWizardArgs
 from pipeline_wizard.config_builder import ConfigBuilder
 from pipeline_wizard.dag import Dag, Parameter, Requirement
-from pipeline_wizard.exceptions import NotADagError, PipelineParseError
+from pipeline_wizard.exceptions import (
+    NotADagError,
+    NotUpperError,
+    PipelineParseError,
+)
 from pipeline_wizard.prompts import (
     prompt_for_parameter_value,
     prompt_for_requirement_path,
@@ -54,7 +58,7 @@ def run(  # noqa: C901
         ]
         # check pipelines are valid dags
         [pipeline.steps for pipeline in parsed_pipelines]
-    except (NotADagError, PipelineParseError) as exc:
+    except (NotADagError, PipelineParseError, NotUpperError) as exc:
         exit_with_message(f"{exc}")
 
     chosen_pipeline: Dag | None = None

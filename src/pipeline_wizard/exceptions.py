@@ -3,6 +3,16 @@
 from pathlib import Path
 
 
+class NotUpperError(Exception):
+    """Raised when a name is not in upper case."""
+
+    def __init__(self, name: str) -> None:
+        super().__init__(
+            f"'{name}' is not in upper case. Please ensure all "
+            "parameters/requirements are in upper case"
+        )
+
+
 class PipelineParseError(Exception):
     """Raised when a pipeline toml file could not be parsed."""
 
