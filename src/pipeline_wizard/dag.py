@@ -125,8 +125,7 @@ class Dag:
         with path.open("rb") as dag_toml:
             data = tomllib.load(dag_toml)
 
-        data["file_path"] = path
-        return cls._from_dict(data, script_directory, pipeline_directory)
+        return cls._from_dict(data, path, script_directory, pipeline_directory)
 
     @property
     def empty(self) -> bool:
@@ -252,7 +251,11 @@ class Dag:
 
     @classmethod
     def _from_dict(  # noqa: C901
-        cls, dag_data: dict, script_directory: Path, pipeline_directory: Path
+        cls,
+        dag_data: dict,
+        dag_path: Path,
+        script_directory: Path,
+        pipeline_directory: Path,
     ) -> Dag:
         """Construct a DAG from a dictionary.
 
@@ -276,16 +279,14 @@ class Dag:
                 for name, default in dag_data.get("parameters", {}).items()
             }
         except NotUpperError as exc:
-            raise PipelineParseError(
-                f"{exc}", dag_data.get("file_path", "unknown_path")
-            ) from exc
+            raise PipelineParseError(f"{exc}", dag_path) from exc
 
         for name, specification in dag_data.get("steps", {}).items():
             after = specification.get("after", [])
             if not isinstance(after, list):
                 raise PipelineParseError(
                     f"'after' lines should be lists: {after}",
-                    dag_data.get("file_path", "unknown_path"),
+                    dag_path,
                 )
 
             after = set(after)
@@ -332,7 +333,7 @@ class Dag:
             if "path" not in specification:
                 raise PipelineParseError(
                     f"Step {name!r} needs a 'path' or a 'dag'",
-                    dag_data.get("file_path", "unknown_path"),
+                    dag_path,
                 )
 
             full_script_path: AbsolutePath = (
@@ -366,9 +367,7 @@ class Dag:
                     },
                 )
             except NotUpperError as exc:
-                raise PipelineParseError(
-                    f"{exc}", dag_data.get("file_path", "unknown_path")
-                ) from exc
+                raise PipelineParseError(f"{exc}", dag_path) from exc
             script_dependencies[name] = after
 
         known_names = script_dependencies.keys() | aliases.keys()
@@ -380,7 +379,7 @@ class Dag:
         if unknown_dependencies:
             raise PipelineParseError(
                 f"Unknown dependencies: {sorted(unknown_dependencies)}",
-                dag_data.get("file_path", "unknown_path"),
+                dag_path,
             )
 
         for node, node_dependencies in script_dependencies.items():
@@ -395,7 +394,7 @@ class Dag:
         return cls(
             name=dag_data.get("name", "unnamed_pipeline"),
             description=dag_data.get("description", ""),
-            file_path=dag_data.get("file_path", "unknown_path"),
+            file_path=dag_path,
             scripts=scripts,
             script_dependencies=script_dependencies,
             global_parameters=global_parameters,
