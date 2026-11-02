@@ -10,8 +10,9 @@ accompanying configuration file).
 * [Usage](#usage)
 * [Why this exists](#why-this-exists)
 * [Idea](#idea)
-* [toml format for pipelines](#toml-format-for-pipelines)
-* [Assumptions](#assumptions)
+* [How to use this](#how-to-use-this)
+  * [Important things to note](#important-things-to-note)
+* [Caveats and assumptions](#caveats-and-assumptions)
 
 ## Installation
 
@@ -91,93 +92,83 @@ A user is capable of changing the wrapper script or configuration file
 themselves manually, but they may not be comfortable with this. For this
 reason, the user may want to rerun this tool to update these files.
 
-## toml format for pipelines
+## How to use this
 
-Pipelines are written in [toml](https://toml.io/en/) like so:
+Pipelines are written in [toml](https://toml.io/en/) format, they bring
+together individual scripts and declare parameters, external requirements and
+script dependencies. Here's an example pipeline:
 
 ```toml
-name = "Test Pipeline"
-description = "A test pipeline with read, clean and write steps"
+name = "Test Pipeline" # The name of the pipeline
+description = "A test pipeline with read, clean and write steps" # short description
 
-[parameters]
-out_directory = "/path/to/output/directory/"
-keep_temporary = false
+[parameters] # These will be global parameters, given as `key = value pairs`
+OUT_DIRECTORY = "/path/to/output/directory/" # The key must be capitalised
+KEEP_TEMPORARY = false # The value given for parameters is used as the default
 
-[steps.read]
-path = "read.sh"
+[steps.read] # individual jobs are put under tags called [step.job_name]
+path = "read.sh" # This is a relative path from 'scripts_directory' passed to the tool
 description = "Read the data from a file and convert to pandas"
 
 [steps.clean]
 path = "clean.sh"
 description = "Use interpolation to remove missingness"
-after = ["read"]
-[steps.clean.requires]
-reference = "https://www.example.com/reference"
-[steps.clean.parameters]
-max_distance = 5
-tool_version = ["v1", "v2"]
+after = ["read"] # This declares a dependency, it *must* be a list (and can contain multiple dependencies)
+
+[steps.clean.requires] # This section declares externally required files
+REFERENCE = "https://www.example.com/reference" # For example, this is a reference file with a download URL
+
+[steps.clean.parameters] # This section declares parameters for this step only
+MAX_DISTANCE = 5
+TOOL_VERSION = ["v1", "v2"]
 
 [steps.write]
 path = "write.sh"
 after = ["clean"]
 [steps.write.parameters]
-out_path = "/desired/path/to/output/"
+OUT_PATH = "/desired/path/to/output/"
 
 [steps.report]
-dag = "report.toml"
+dag = "report.toml" # use 'dag = ...' to include a separate pipeline within this one (allowing for modularity)
 after = ["write"]
 ```
 
-Key:
+### Important things to note
 
-- Sections are denoted by `[steps.step_name]`
-- path -> The path (relative to some scripts directory) the script lies
-- description -> The description of the pipeline (top) or step
-- after -> What scripts need to complete successfully for this one to run (a
-  prerequisite)
-  - after *must* be provided as a list `["step1","step2"]` even if there is
-    only one script it depends on
-- dag -> A path to another toml to embed into this one (allows for more
-  flexibility and modularity)
-- Parameters -> Denoted in `key = value` pairs under section header
-  `[steps.step_name.parameters]`
-  - The value given is considered a default. The user will be asked if they
-    wish to override this.
-  - If a list is given for value (`[option_1, option_2]`), the user will be
-    given this list of options to choose from (rather than trying to guess at a
-    different value)
-  - All parameters when added into the configuration file will be made upper
-    case. This decision was made to stop complaints from linters like
+1. Script paths are relative to some 'scripts directory' (passed to tool).
+2. 'dag' paths are relative to some 'pipelines directory' (passed to tool).
+3. 'after' tags must result in an acyclic graph, if a dependency graph results
+   in a cycle (implying some step is its own dependency) the tool will fail.
+4. Parameters and requirements (`[step.name.requires]`) will be made made upper
+   case in the configuration file. This is important as your scripts using
+   these environment variables need to match the case (using 'out_dir' in a
+   pipeline will lead to 'OUT_DIR' being set, not 'out_dir').
+  - To make this less confusing, it is mandatory you write all parameters in
+    the toml in upper case too.
+  - This decision was made to stop complaints from linters like
     [shellcheck](https://www.shellcheck.net/).
-    - This is important as it means if you have a pipeline with parameters like
-    'paramname' and 'ParamName', these will be merged into one
-    - To make this less confusing, you could write all parameters in the toml
-      in upper case too.
-  - Boolean parameters (true/false) are added to the config as TRUE/FALSE
-    though by toml standard, the toml should use `true` or `false`.
-- Requires -> An external file that is required (for example, a genome fasta).
-  Denoted in `key = value` pairs under section header
-  `[steps.step_name.requires]`
-  - All requirements will be shown to the user. If a requirement value is a URL
-    and the user cannot show they have the file, the URL will be used to
-    download the file
-  - Requirements added to the configuration file will be made upper case. This
-    matches how parameters are written.
-- `[parameters]` -> This is a section for defining parameters that are used in
-  multiple scripts. It is also given as key value pairs like above.
-  - It is not recommended to use this for one off cases as users can remove
-    branches they don't need. If a parameter is only used in a single script
-    (and that script is removed from the pipeline), it should go under that
-    particular script (not the global parameters), else the user would need to
-    set a value that is never used.
+  - This is important as it means if you have a pipeline with parameters like
+  'paramname' and 'ParamName', these will be merged into one.
+  - As these names are in upper case, please ensure you do not name any
+    parameters after common environment variables like 'PATH' or 'HOME'.
+5. Boolean parameters will be added as 'true' and 'false', these are used as
+   most GNU/Linux systems have binaries called 'true' and 'false' that
+   immediately exit with code 0/1 respectively.
+6. The reason for having parameter sections for each job step and also globally
+   is to reduce repetition for the pipeline creator. However, do not put all
+   parameters into the global section. Job step parameter sections are still
+   useful as it means if a user removes this step from the pipeline, they no
+   longer are asked to provide a value for it.
 
-## Assumptions
+## Caveats and assumptions
 
 - The [slurm workload manager](https://slurm.schedmd.com/) is used as a job
   executor in the scripts being ran
   - Under this light, all scripts in the pipeline being generated are expected
     to run if called with `sbatch` (meaning they need a shebang and #SBATCH
     directives)
+  - Currently, no cluster specific information is asked of the user (so cluster
+    specific `#SBATCH` directives should not be present in pipeline scripts).
 - Scripts will obtain configuration parameters from the environment. The config
   file generated consists of lines like `export PARAMETER_NAME=value`. A
   reminder that all parameters will be capitalised when added to the
