@@ -53,7 +53,7 @@ class ConfigBuilder:
             )
             value = f'"{escaped}"'
         elif isinstance(value, bool):
-            value = "TRUE" if value else "FALSE"
+            value = "true" if value else "false"
 
         self.parameters.add(parameter.name)
         self._contents.append(f"export {parameter.name.upper()}={value}")
