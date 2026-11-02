@@ -47,7 +47,7 @@ def test_prompts_for_parameter_value(
     """
     feed_input(answers)
 
-    assert prompt_for_parameter_value(Parameter("p", default)) == expected
+    assert prompt_for_parameter_value(Parameter("P", default)) == expected
 
 
 def test_returns_existing_path_the_user_has(
@@ -67,7 +67,7 @@ def test_returns_existing_path_the_user_has(
     existing.write_text("x")
     feed_input(["yes", str(existing)])
 
-    result = prompt_for_requirement_path(Requirement("ref", "instructions"))
+    result = prompt_for_requirement_path(Requirement("REF", "instructions"))
 
     assert result == existing.resolve()
 
@@ -89,7 +89,7 @@ def test_asks_again_if_given_path_does_not_exist(
     existing.write_text("x")
     feed_input(["yes", str(tmp_path / "nope"), "yes", str(existing)])
 
-    result = prompt_for_requirement_path(Requirement("ref", "instructions"))
+    result = prompt_for_requirement_path(Requirement("REF", "instructions"))
 
     assert result == existing.resolve()
 
@@ -109,7 +109,7 @@ def test_shows_instructions_when_user_lacks_file(
     """
     feed_input(["no"])
 
-    prompt_for_requirement_path(Requirement("ref", "ask the lab manager"))
+    prompt_for_requirement_path(Requirement("REF", "ask the lab manager"))
 
     assert "ask the lab manager" in capsys.readouterr().out
 
@@ -140,7 +140,7 @@ def test_downloads_requirement_from_url(
     feed_input(["no", "yes", str(target)])
 
     result = prompt_for_requirement_path(
-        Requirement("ref", "https://example.com/ref.fa")
+        Requirement("REF", "https://example.com/ref.fa")
     )
 
     assert result == target
@@ -163,7 +163,7 @@ def test_declining_download_returns_placeholder_path(
     feed_input(["no", "no"])
 
     result = prompt_for_requirement_path(
-        Requirement("ref", "https://example.com/ref.fa")
+        Requirement("REF", "https://example.com/ref.fa")
     )
 
     assert result == TODO

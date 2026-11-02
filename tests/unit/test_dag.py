@@ -12,16 +12,16 @@ CHAIN = """
 name = "Chain"
 description = "a then b then c"
 [parameters]
-out = "/out"
+OUT = "/out"
 [steps.a]
 path = "a.sh"
 [steps.b]
 path = "b.sh"
 after = ["a"]
 [steps.b.parameters]
-n = 5
+N = 5
 [steps.b.requires]
-ref = "https://example.com/ref"
+REF = "https://example.com/ref"
 [steps.c]
 path = "c.sh"
 after = ["b"]
@@ -117,8 +117,8 @@ def test_script_holds_parameters_requirements_and_path(
     dag = make_dag(CHAIN)
     script = dag.steps[1][0]
 
-    assert script.parameters["n"].default == 5
-    assert script.requires["ref"].instructions == "https://example.com/ref"
+    assert script.parameters["N"].default == 5
+    assert script.requires["REF"].instructions == "https://example.com/ref"
     assert script.path == tmp_path.resolve() / "b.sh"
 
 
@@ -152,7 +152,7 @@ def test_reads_global_parameters(make_dag: Callable[..., Dag]) -> None:
     """
     dag = make_dag(CHAIN)
 
-    assert dag.global_parameters["out"].default == "/out"
+    assert dag.global_parameters["OUT"].default == "/out"
 
 
 def test_lists_script_names(make_dag: Callable[..., Dag]) -> None:
@@ -259,7 +259,7 @@ def test_nested_dag_is_flattened_with_prefix(
 
     """
     nested = (
-        '[parameters]\nreport_dir = "/r"\n'
+        '[parameters]\nREPORT_DIR = "/r"\n'
         '[steps.x]\npath = "x.sh"\n'
         '[steps.y]\npath = "y.sh"\nafter = ["x"]\n'
     )
@@ -271,7 +271,7 @@ def test_nested_dag_is_flattened_with_prefix(
     dag = make_dag(top, {"nested.toml": nested})
 
     assert _names(dag) == [["a"], ["rep_x"], ["rep_y"]]
-    assert "report_dir" in dag.global_parameters
+    assert "REPORT_DIR" in dag.global_parameters
 
 
 def test_step_after_nested_dag_waits_for_its_final_scripts(

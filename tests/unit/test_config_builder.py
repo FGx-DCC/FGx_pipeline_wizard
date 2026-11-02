@@ -19,8 +19,8 @@ def _written(builder: ConfigBuilder, tmp_path: Path) -> list[str]:
     [
         ("text", 'export NAME="text"'),
         (7, "export NAME=7"),
-        (True, "export NAME=TRUE"),
-        (False, "export NAME=FALSE"),
+        (True, "export NAME=true"),
+        (False, "export NAME=false"),
     ],
 )
 def test_writes_parameter_as_export(
@@ -37,7 +37,7 @@ def test_writes_parameter_as_export(
 
     """
     builder = ConfigBuilder()
-    builder.add_parameter_value_pair(Parameter("name", ""), value)
+    builder.add_parameter_value_pair(Parameter("NAME", ""), value)
 
     assert _written(builder, tmp_path) == [expected]
 
@@ -55,7 +55,7 @@ def test_writes_requirement_path(tmp_path: Path) -> None:
     """
     builder = ConfigBuilder()
     builder.add_requirement_path_pair(
-        Requirement("ref", "how to get"), Path("/data/ref.fa")
+        Requirement("REF", "how to get"), Path("/data/ref.fa")
     )
 
     assert _written(builder, tmp_path) == ['export REF="/data/ref.fa"']
@@ -73,8 +73,8 @@ def test_ignores_repeated_parameter(tmp_path: Path) -> None:
 
     """
     builder = ConfigBuilder()
-    builder.add_parameter_value_pair(Parameter("n", 1), 1)
-    builder.add_parameter_value_pair(Parameter("n", 1), 2)
+    builder.add_parameter_value_pair(Parameter("N", 1), 1)
+    builder.add_parameter_value_pair(Parameter("N", 1), 2)
 
     assert _written(builder, tmp_path) == ["export N=1"]
 
@@ -91,7 +91,7 @@ def test_ignores_repeated_requirement(tmp_path: Path) -> None:
 
     """
     builder = ConfigBuilder()
-    requirement = Requirement("ref", "x")
+    requirement = Requirement("REF", "x")
     builder.add_requirement_path_pair(requirement, Path("/a"))
     builder.add_requirement_path_pair(requirement, Path("/b"))
 
@@ -110,11 +110,11 @@ def test_tracks_added_names() -> None:
 
     """
     builder = ConfigBuilder()
-    builder.add_parameter_value_pair(Parameter("p", 1), 1)
-    builder.add_requirement_path_pair(Requirement("r", "x"), Path("/r"))
+    builder.add_parameter_value_pair(Parameter("P", 1), 1)
+    builder.add_requirement_path_pair(Requirement("R", "x"), Path("/r"))
 
-    assert "p" in builder.parameters
-    assert "r" in builder.requirements
+    assert "P" in builder.parameters
+    assert "R" in builder.requirements
 
 
 def test_write_fails_for_unwritable_path(tmp_path: Path) -> None:
@@ -147,7 +147,7 @@ def test_escapes_shell_metacharacters(tmp_path: Path) -> None:
 
     value = 'he said "hi" $HOME `id`'
     builder = ConfigBuilder()
-    print(builder.add_parameter_value_pair(Parameter("m", ""), value))
+    print(builder.add_parameter_value_pair(Parameter("M", ""), value))
     out = tmp_path / "config.sh"
     builder.write_config_file(out)
 
