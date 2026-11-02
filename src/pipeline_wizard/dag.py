@@ -114,7 +114,7 @@ class Dag:
 
     @classmethod
     def from_toml(
-        cls, path: Path, script_directory: Path, dag_directory: Path
+        cls, path: Path, script_directory: Path, pipeline_directory: Path
     ) -> Dag:
         """Read DAG from a toml file.
 
@@ -126,7 +126,7 @@ class Dag:
             data = tomllib.load(dag_toml)
 
         data["file_path"] = path
-        return cls._from_dict(data, script_directory, dag_directory)
+        return cls._from_dict(data, script_directory, pipeline_directory)
 
     @property
     def empty(self) -> bool:
@@ -252,7 +252,7 @@ class Dag:
 
     @classmethod
     def _from_dict(  # noqa: C901
-        cls, dag_data: dict, script_directory: Path, dag_directory: Path
+        cls, dag_data: dict, script_directory: Path, pipeline_directory: Path
     ) -> Dag:
         """Construct a DAG from a dictionary.
 
@@ -293,9 +293,9 @@ class Dag:
             if "dag" in specification:
                 # Flatten nested DAG
                 sub_dag = cls.from_toml(
-                    dag_directory / specification["dag"],
+                    pipeline_directory / specification["dag"],
                     script_directory,
-                    dag_directory,
+                    pipeline_directory,
                 )
                 # Append a prefix to help prevent naming collisions
                 prefix = f"{name}_"
