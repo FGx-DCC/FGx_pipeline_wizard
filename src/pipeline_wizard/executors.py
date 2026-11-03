@@ -59,7 +59,7 @@ class SlurmExecutor(Executor):
         if dependent_jobs:
             options.append("--dependency=afterok:" + ":".join(dependent_jobs))
         for directive, value in directives.as_slurm().items():
-            if value is None:
+            if value is None or value == "":
                 continue
             options.append(f"{directive}={value}")
 
