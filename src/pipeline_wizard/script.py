@@ -56,6 +56,35 @@ class Requirement:
 
 
 @dataclass
+class Directives:
+    """Represents scheduler agnostic directives for a given script.
+
+    These are most useful for scripts that are to be executed by some job
+    scheduler (such as slurm or pbs).
+
+    All data members are nullable as none are an actual requirement (local
+    scripts not meant to be submitted to a scheduler have no need for any of
+    these).
+
+    """
+
+    account: str | None
+    array: str | None
+    copy_environment: str | None
+    cpus_per_task: str | None
+    error_file: str | None
+    event_notification: str | None
+    job_name: str | None
+    log_file: str | None
+    memory: str | None
+    partition: str | None
+    qos: str | None
+    task_count: str | None
+    wall_time: str | None
+    work_directory: str | None
+
+
+@dataclass
 class Script:
     """Represents a script with associated information."""
 
