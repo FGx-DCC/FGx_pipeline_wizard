@@ -61,8 +61,6 @@ class SlurmExecutor(Executor):
         for directive, value in directives.as_slurm().items():
             if value is None:
                 continue
-            if directive == "--export":
-                value = "ALL"
             options.append(f"{directive}={value}")
 
         return f"{job_variable}=$(sbatch {' '.join(options)} {script})"
