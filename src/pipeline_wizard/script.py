@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from pathlib import Path
 
 from pipeline_wizard.exceptions import (
@@ -68,20 +68,65 @@ class Directives:
 
     """
 
-    account: str | None = field(default=None)
-    array: str | None = field(default=None)
-    copy_environment: str | None = field(default=None)
-    cpus_per_task: str | None = field(default=None)
-    error_file: str | None = field(default=None)
-    event_notification: str | None = field(default=None)
-    job_name: str | None = field(default=None)
-    log_file: str | None = field(default=None)
-    memory: str | None = field(default=None)
-    partition: str | None = field(default=None)
-    qos: str | None = field(default=None)
-    task_count: str | None = field(default=None)
-    wall_time: str | None = field(default=None)
-    work_directory: str | None = field(default=None)
+    account: str | None = field(
+        default=None,
+        metadata={"slurm": "--account"},
+    )
+    array: str | None = field(
+        default=None,
+        metadata={"slurm": "--array"},
+    )
+    copy_environment: str | None = field(
+        default=None,
+        metadata={"slurm": "--export"},
+    )
+    cpus_per_task: str | None = field(
+        default=None,
+        metadata={"slurm": "cpus-per-task"},
+    )
+    error_file: str | None = field(
+        default=None,
+        metadata={"slurm": "--error"},
+    )
+    event_notification: str | None = field(
+        default=None,
+        metadata={"slurm": "--mail"},
+    )
+    job_name: str | None = field(
+        default=None,
+        metadata={"slurm": "--job-name"},
+    )
+    log_file: str | None = field(
+        default=None,
+        metadata={"slurm": "--output"},
+    )
+    memory: str | None = field(
+        default=None,
+        metadata={"slurm": "--mem"},
+    )
+    partition: str | None = field(
+        default=None,
+        metadata={"slurm": "--partition"},
+    )
+    qos: str | None = field(
+        default=None,
+        metadata={"slurm": "--qos"},
+    )
+    task_count: str | None = field(
+        default=None,
+        metadata={"slurm": "--ntasks"},
+    )
+    wall_time: str | None = field(
+        default=None,
+        metadata={"slurm": "--time"},
+    )
+
+    def as_slurm(self) -> dict[str, str | None]:
+        """Return directives as used in slurm."""
+        return {
+            field.metadata["slurm"]: getattr(self, field.name)
+            for field in fields(self)
+        }
 
 
 @dataclass

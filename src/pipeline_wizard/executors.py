@@ -43,22 +43,6 @@ class Executor(metaclass=ABCMeta):
 class SlurmExecutor(Executor):
     """The slurm workload manager."""
 
-    _DIRECTIVES_MAP = {
-        "account": "--account=",
-        "partition": "--partition=",
-        "job_name": "--job-name=",
-        "array": "--array=",
-        "copy_environment": "--export=",
-        "cpus_per_task": "--cpus-per-task=",
-        "error_file": "--error=",
-        "log_file": "--output=",
-        "memory": "--mem=",
-        "qos": "--qos=",
-        "wall_time": "--time=",
-        "event_notification": "--mail-type=",
-        "task_count": "--ntasks=",
-    }
-
     @override
     def submit_text(
         self,
@@ -74,14 +58,10 @@ class SlurmExecutor(Executor):
         directives = self._validate_directives(directives)
         if dependent_jobs:
             options.append("--dependency=afterok:" + ":".join(dependent_jobs))
-        for field in fields(directives):
-            field_value = getattr(directives, field.name)
-            if field_value is not None and field_value != "":
-                if field.name == "copy_environment":
-                    field_value = "ALL"
-                options.append(
-                    f"{self._DIRECTIVES_MAP[field.name]}{field_value}"
-                )
+        for directive, value in directives.as_slurm().items():
+            if directive == "--export":
+                value = "ALL"
+            options.append(f"{directive}={value}")
 
         return f"{job_name}=$(sbatch {' '.join(options)} {script})"
 
