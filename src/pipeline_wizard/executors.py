@@ -1,11 +1,11 @@
 """Job executors for running scripts in a pipeline."""
 
-from functools import cached_property
-from re import split
-import shutil
-from abc import ABCMeta, abstractmethod
-import subprocess
 import getpass
+import shutil
+import subprocess
+from abc import ABCMeta, abstractmethod
+from dataclasses import fields
+from functools import cached_property
 from typing import override
 
 from pipeline_wizard.exceptions import CommandNotFoundError
@@ -43,6 +43,22 @@ class Executor(metaclass=ABCMeta):
 class SlurmExecutor(Executor):
     """The slurm workload manager."""
 
+    _DIRECTIVES_MAP = {
+        "account": "--account=",
+        "partition": "--partition=",
+        "job_name": "--job-name=",
+        "array": "--array=",
+        "copy_environment": "--export=",
+        "cpus_per_task": "--cpus-per-task=",
+        "error_file": "--error=",
+        "log_file": "--output=",
+        "memory": "--mem=",
+        "qos": "--qos=",
+        "wall_time": "--time=",
+        "event_notification": "--mail-type=",
+        "task_count": "--ntasks=",
+    }
+
     @override
     def submit_text(
         self,
@@ -52,7 +68,20 @@ class SlurmExecutor(Executor):
         dependent_jobs: list[str] | None,
     ) -> str:
         """Return submit line for sbatch."""
-        return ""
+        if not directives:
+            raise ValueError("Directives required for slurm scripts")
+        options = ["--parsable"]
+        directives = self._validate_directives(directives)
+        if dependent_jobs:
+            options.append("--dependency=afterok:" + ":".join(dependent_jobs))
+        for field in fields(directives):
+            field_value = getattr(directives, field.name)
+            if field_value is not None:
+                options.append(
+                    f"{self._DIRECTIVES_MAP[field.name]}{field_value}"
+                )
+
+        return f"{job_name}=$(sbatch {' '.join(options)} {script})"
 
     @cached_property
     def _slurm_user_info(self) -> list[list[str]]:
