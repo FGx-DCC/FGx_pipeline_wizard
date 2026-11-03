@@ -20,7 +20,7 @@ class Executor(metaclass=ABCMeta):
     def submit_text(
         self,
         script: AbsolutePath,
-        job_name: str,
+        job_variable: str,
         directives: Directives | None,
         dependent_jobs: list[str] | None,
     ) -> str:
@@ -29,7 +29,7 @@ class Executor(metaclass=ABCMeta):
         Args:
             script:
                 The script to submit to the executor.
-            job_name:
+            job_variable:
                 The name of the variable to put the job id (if any) into.
             directives:
                 The executor directives/options to add to the submit line.
@@ -47,7 +47,7 @@ class SlurmExecutor(Executor):
     def submit_text(
         self,
         script: AbsolutePath,
-        job_name: str,
+        job_variable: str,
         directives: Directives | None,
         dependent_jobs: list[str] | None,
     ) -> str:
@@ -63,7 +63,7 @@ class SlurmExecutor(Executor):
                 value = "ALL"
             options.append(f"{directive}={value}")
 
-        return f"{job_name}=$(sbatch {' '.join(options)} {script})"
+        return f"{job_variable}=$(sbatch {' '.join(options)} {script})"
 
     @cached_property
     def _slurm_user_info(self) -> list[list[str]]:
@@ -149,7 +149,7 @@ class LocalExecutor(Executor):
     def submit_text(
         self,
         script: AbsolutePath,
-        job_name: str,
+        job_variable: str,
         directives: Directives | None,
         dependent_jobs: list[str] | None,
     ) -> str:
@@ -164,7 +164,7 @@ class PBSExecutor(Executor):
     def submit_text(
         self,
         script: AbsolutePath,
-        job_name: str,
+        job_variable: str,
         directives: Directives | None,
         dependent_jobs: list[str] | None,
     ) -> str:
