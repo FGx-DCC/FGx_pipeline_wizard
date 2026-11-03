@@ -153,8 +153,14 @@ class LocalExecutor(Executor):
         directives: Directives | None,
         dependent_jobs: list[str] | None,
     ) -> str:
-        """Return submit line for shell."""
-        return ""
+        """Return submit line for shell.
+
+        For now, the local executor is incredibly basic and doesn't take
+        advantage of parallel jobs. The fix would be to run jobs in the
+        background and use 'wait' (though this is a little fragile).
+
+        """
+        return str(script)
 
 
 class PBSExecutor(Executor):
