@@ -59,6 +59,8 @@ class SlurmExecutor(Executor):
         if dependent_jobs:
             options.append("--dependency=afterok:" + ":".join(dependent_jobs))
         for directive, value in directives.as_slurm().items():
+            if value is None:
+                continue
             if directive == "--export":
                 value = "ALL"
             options.append(f"{directive}={value}")
