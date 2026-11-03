@@ -5,9 +5,8 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass, field, fields
-from typing import Protocol, runtime_checkable
 from enum import Flag, auto
-from typing import ClassVar
+from typing import ClassVar, Protocol, runtime_checkable
 
 
 @runtime_checkable
