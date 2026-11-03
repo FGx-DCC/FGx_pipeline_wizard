@@ -76,7 +76,7 @@ class SlurmExecutor(Executor):
             options.append("--dependency=afterok:" + ":".join(dependent_jobs))
         for field in fields(directives):
             field_value = getattr(directives, field.name)
-            if field_value is not None:
+            if field_value is not None and field_value != "":
                 options.append(
                     f"{self._DIRECTIVES_MAP[field.name]}{field_value}"
                 )
