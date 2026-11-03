@@ -4,12 +4,11 @@ import getpass
 import shutil
 import subprocess
 from abc import ABCMeta, abstractmethod
-from dataclasses import fields
 from functools import cached_property
 from typing import override
 
+from pipeline_wizard.directives import Directives
 from pipeline_wizard.exceptions import CommandNotFoundError
-from pipeline_wizard.script import Directives
 from pipeline_wizard.types import AbsolutePath
 
 
@@ -176,7 +175,45 @@ class PBSExecutor(Executor):
         dependent_jobs: list[str] | None,
     ) -> str:
         """Return submit line for qsub."""
-        return ""
+        options = []
+        if dependent_jobs:
+            options.append("-W depend=afterok:" + ":".join(dependent_jobs))
+
+        if directives:
+            for directive, value in directives.as_pbs().items():
+                if value is None or value == "" or directive.startswith("-l"):
+                    continue
+                options.append(
+                    directive if value == "" else f"{directive} {value}"
+                )
+            options.extend(self._resource_options(directives))
+
+        return f"{job_variable}=$(qsub {' '.join(options)} {script})"
+
+    def _resource_options(self, directives: Directives) -> list[str]:
+        """Return the -l resource options for qsub."""
+        resources: list[str] = []
+
+        if any(
+            (
+                directives.cpus_per_task,
+                directives.task_count,
+                directives.memory,
+            )
+        ):
+            cpus = int(directives.cpus_per_task or 1)
+            tasks = int(directives.task_count or 1)
+            select = f"select=1:ncpus={cpus * tasks}:mpiprocs={tasks}"
+            if cpus > 1:
+                select += f":ompthreads={cpus}"
+            if directives.memory:
+                select += f":mem={directives.memory.as_pbs()}"
+            resources.append(f"-l {select}")
+
+        if directives.wall_time:
+            resources.append(f"-l walltime={directives.wall_time}")
+
+        return resources
 
 
 def get_available_system_executors() -> list[type[Executor]]:
