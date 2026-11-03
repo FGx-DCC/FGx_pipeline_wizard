@@ -4,6 +4,7 @@ import shutil
 from abc import ABCMeta, abstractmethod
 from typing import override
 
+from pipeline_wizard.script import Directives
 from pipeline_wizard.types import AbsolutePath
 
 
@@ -15,7 +16,7 @@ class Executor(metaclass=ABCMeta):
         self,
         script: AbsolutePath,
         job_name: str,
-        directives: list[str] | None,
+        directives: Directives | None,
         dependent_jobs: list[str] | None,
     ) -> str:
         """Return line for the pipeline wrapper script to submit the job.
@@ -42,7 +43,7 @@ class SlurmExecutor(Executor):
         self,
         script: AbsolutePath,
         job_name: str,
-        directives: list[str] | None,
+        directives: Directives | None,
         dependent_jobs: list[str] | None,
     ) -> str:
         """Return submit line for sbatch."""
@@ -57,7 +58,7 @@ class LocalExecutor(Executor):
         self,
         script: AbsolutePath,
         job_name: str,
-        directives: list[str] | None,
+        directives: Directives | None,
         dependent_jobs: list[str] | None,
     ) -> str:
         """Return submit line for shell."""
@@ -72,7 +73,7 @@ class PBSExecutor(Executor):
         self,
         script: AbsolutePath,
         job_name: str,
-        directives: list[str] | None,
+        directives: Directives | None,
         dependent_jobs: list[str] | None,
     ) -> str:
         """Return submit line for qsub."""
