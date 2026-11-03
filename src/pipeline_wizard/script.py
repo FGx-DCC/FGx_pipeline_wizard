@@ -70,61 +70,68 @@ class Directives:
 
     account: str | None = field(
         default=None,
-        metadata={"slurm": "--account"},
+        metadata={"slurm": "--account", "pbs": "-A"},
     )
     array: str | None = field(
         default=None,
-        metadata={"slurm": "--array"},
+        metadata={"slurm": "--array", "pbs": "-J"},
     )
     copy_environment: str | None = field(
         default=None,
-        metadata={"slurm": "--export"},
+        metadata={"slurm": "--export", "pbs": "-V"},
     )
     cpus_per_task: str | None = field(
         default=None,
-        metadata={"slurm": "cpus-per-task"},
+        metadata={"slurm": "--cpus-per-task", "pbs": "-l select"},
     )
     error_file: str | None = field(
         default=None,
-        metadata={"slurm": "--error"},
+        metadata={"slurm": "--error", "pbs": "-e"},
     )
     event_notification: str | None = field(
         default=None,
-        metadata={"slurm": "--mail"},
+        metadata={"slurm": "--mail-type", "pbs": "-m"},
     )
     job_name: str | None = field(
         default=None,
-        metadata={"slurm": "--job-name"},
+        metadata={"slurm": "--job-name", "pbs": "-N"},
     )
     log_file: str | None = field(
         default=None,
-        metadata={"slurm": "--output"},
+        metadata={"slurm": "--output", "pbs": "-o"},
     )
     memory: str | None = field(
         default=None,
-        metadata={"slurm": "--mem"},
+        metadata={"slurm": "--mem", "pbs": "-l select"},
     )
     partition: str | None = field(
         default=None,
-        metadata={"slurm": "--partition"},
+        metadata={"slurm": "--partition", "pbs": "-q"},
     )
     qos: str | None = field(
         default=None,
-        metadata={"slurm": "--qos"},
+        metadata={"slurm": "--qos", "pbs": "-l qos"},
     )
     task_count: str | None = field(
         default=None,
-        metadata={"slurm": "--ntasks"},
+        metadata={"slurm": "--ntasks", "pbs": "-l select"},
     )
     wall_time: str | None = field(
         default=None,
-        metadata={"slurm": "--time"},
+        metadata={"slurm": "--time", "pbs": "-l walltime"},
     )
 
     def as_slurm(self) -> dict[str, str | None]:
         """Return directives as used in slurm."""
         return {
             field.metadata["slurm"]: getattr(self, field.name)
+            for field in fields(self)
+        }
+
+    def as_pbs(self) -> dict[str, str | None]:
+        """Return directives as used in PBS."""
+        return {
+            field.metadata["pbs"]: getattr(self, field.name)
             for field in fields(self)
         }
 
