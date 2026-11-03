@@ -2,9 +2,20 @@
 
 from __future__ import annotations
 
+import math
+import re
 from dataclasses import dataclass, field, fields
+from typing import Protocol, runtime_checkable
 from enum import Flag, auto
 from typing import ClassVar
+
+
+@runtime_checkable
+class SchedulerValue(Protocol):
+    """A value that can be converted for different schedulers."""
+
+    def as_slurm(self) -> str: ...  # noqa: D102
+    def as_pbs(self) -> str: ...  # noqa: D102
 
 
 class EventNotification(Flag):
@@ -74,6 +85,59 @@ class CopyEnvironment:
 CopyEnvironment.ALL = CopyEnvironment()
 
 
+@dataclass(frozen=True)
+class Memory:
+    """A scheduler agnostic amount of memory, stored in bytes."""
+
+    _KIB, _MIB, _GIB, _TIB = 2**10, 2**20, 2**30, 2**40
+    _UNITS = {"K": _KIB, "M": _MIB, "G": _GIB, "T": _TIB}
+    _MEMORY_PATTERN = re.compile(
+        r"(\d+(?:\.\d+)?)\s*(?:([KMGT])B?)?", re.IGNORECASE
+    )
+
+    size_bytes: int
+
+    def __post_init__(self) -> None:
+        """Ensure memory is positive, slurm allows for mem=0 (for all)."""
+        if self.size_bytes <= 0:
+            raise ValueError("Memory must be positive")
+
+    @classmethod
+    def parse(cls, text: str) -> Memory:
+        """Parse values like '8G', '8GB', '500M' or '1.5g'.
+
+        A bare number is megabytes (the slurm default). Units are powers of
+        1024, matching both slurm and PBS.
+
+        """
+        match = cls._MEMORY_PATTERN.fullmatch(text.strip())
+        if match is None:
+            raise ValueError(f"Invalid memory value: {text!r}")
+        number, unit = match.groups()
+        scale = cls._UNITS[unit.upper()] if unit else cls._MIB
+        return cls(round(float(number) * scale))
+
+    def as_slurm(self) -> str:
+        """Return as a slurm --mem value (8G, 500M)."""
+        # slurm can only use G and M (so M is min size)
+        for suffix, size in (("G", self._GIB), ("M", self._MIB)):
+            if self.size_bytes % size == 0:
+                return f"{self.size_bytes // size}{suffix}"
+        return f"{math.ceil(self.size_bytes / self._MIB)}M"
+
+    def as_pbs(self) -> str:
+        """Return as a PBS mem value (8gb, 500mb)."""
+        for suffix, size in (
+            ("tb", self._TIB),
+            ("gb", self._GIB),
+            ("mb", self._MIB),
+            ("kb", self._KIB),
+        ):
+            if self.size_bytes % size == 0:
+                return f"{self.size_bytes // size}{suffix}"
+        return f"{self.size_bytes}b"
+
+
 @dataclass
 class Directives:
     """Represents scheduler agnostic directives for a given script.
@@ -119,7 +183,7 @@ class Directives:
         default=None,
         metadata={"slurm": "--output", "pbs": "-o"},
     )
-    memory: str | None = field(
+    memory: Memory | None = field(
         default=None,
         metadata={"slurm": "--mem", "pbs": "-l select"},
     )
@@ -144,7 +208,7 @@ class Directives:
         """Convert a directive value to its scheduler specific string."""
         if value is None:
             return None
-        if isinstance(value, (EventNotification, CopyEnvironment)):
+        if isinstance(value, SchedulerValue):
             return getattr(value, f"as_{scheduler}")()
         return str(value)
 
