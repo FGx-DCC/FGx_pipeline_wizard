@@ -118,6 +118,7 @@ class SlurmExecutor(Executor):
         for parititon in partitions:
             if parititon.endswith("*"):  # from sinfo man page
                 default_partition = parititon
+        partitions = [partition.rstrip("*") for partition in partitions]
 
         if (
             directives.partition is None
