@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from pipeline_wizard.config_builder import ConfigBuilder
-from pipeline_wizard.dag import Parameter, Requirement
+from pipeline_wizard.script import Parameter, Requirement
 
 
 def _written(builder: ConfigBuilder, tmp_path: Path) -> list[str]:

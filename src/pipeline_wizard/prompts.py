@@ -3,8 +3,8 @@
 from urllib.error import URLError
 from urllib.parse import urlparse
 
-from pipeline_wizard.dag import Parameter, Requirement
 from pipeline_wizard.download import download_file
+from pipeline_wizard.script import Parameter, Requirement
 from pipeline_wizard.types import AbsolutePath
 from pipeline_wizard.wizard import (
     ANSIColors,

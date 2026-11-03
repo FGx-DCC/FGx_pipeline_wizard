@@ -5,12 +5,13 @@ from pathlib import Path
 
 import pytest
 
-from pipeline_wizard.dag import Dag, Parameter, Requirement
+from pipeline_wizard.dag import Dag
 from pipeline_wizard.exceptions import (
     NotADagError,
     NotUpperError,
     PipelineParseError,
 )
+from pipeline_wizard.script import Parameter, Requirement
 
 CHAIN = """
 name = "Chain"

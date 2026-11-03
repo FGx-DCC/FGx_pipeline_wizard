@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pipeline_wizard.cli_parser import PipelineWizardArgs
 from pipeline_wizard.config_builder import ConfigBuilder
-from pipeline_wizard.dag import Dag, Parameter, Requirement
+from pipeline_wizard.dag import Dag
 from pipeline_wizard.exceptions import (
     NotADagError,
     NotUpperError,
@@ -17,6 +17,7 @@ from pipeline_wizard.prompts import (
     prompt_for_requirement_path,
 )
 from pipeline_wizard.run_builder import RunBuilder
+from pipeline_wizard.script import Parameter, Requirement
 from pipeline_wizard.wizard import (
     ANSIColors,
     ask,
