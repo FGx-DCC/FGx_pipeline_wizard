@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, fields
+from enum import Flag, auto
 from pathlib import Path
+from typing import ClassVar
 
 from pipeline_wizard.exceptions import (
     NotUpperError,
@@ -55,6 +57,73 @@ class Requirement:
             raise NotUpperError(self.name)
 
 
+class EventNotification(Flag):
+    """Scheduler agnostic job events to send notifications for."""
+
+    NONE = 0
+    BEGIN = auto()
+    END = auto()
+    FAIL = auto()
+    ALL = BEGIN | END | FAIL
+
+    def as_slurm(self) -> str:
+        """Return as a slurm --mail-type value."""
+        if not self:
+            return "NONE"
+        if self == EventNotification.ALL:
+            return "ALL"
+        return ",".join(
+            event.name
+            for event in (self.BEGIN, self.END, self.FAIL)
+            if event in self and event.name is not None
+        )
+
+    def as_pbs(self) -> str:
+        """Return as a PBS -m value (a=abort, b=begin, e=end)."""
+        if not self:
+            return "n"
+        letters = {
+            EventNotification.BEGIN: "b",
+            EventNotification.END: "e",
+            EventNotification.FAIL: "a",
+        }
+        return "".join(
+            letter for event, letter in letters.items() if event in self
+        )
+
+
+@dataclass(frozen=True)
+class CopyEnvironment:
+    """Which environment variables to copy into the job.
+
+    `variables=None` is the sentinel for "everything" use
+    `CopyEnvironment.ALL`. An empty tuple means copy nothing.
+
+    """
+
+    variables: tuple[str, ...] | None = None
+
+    ALL: ClassVar[CopyEnvironment]
+
+    def as_slurm(self) -> str:
+        """Return as a slurm --export value."""
+        if self.variables is None:
+            return "ALL"
+        return ",".join(self.variables) or "NONE"
+
+    @property
+    def pbs_flag(self) -> str:
+        """PBS uses a (-V) for all vs. specific (-v) variables."""
+        return "-V" if self.variables is None else "-v"
+
+    def as_pbs(self) -> str:
+        """Return as a PBS value ("" means a bare -V flag)."""
+        return "" if self.variables is None else ",".join(self.variables)
+
+
+CopyEnvironment.ALL = CopyEnvironment()
+
+
 @dataclass
 class Directives:
     """Represents scheduler agnostic directives for a given script.
@@ -76,7 +145,7 @@ class Directives:
         default=None,
         metadata={"slurm": "--array", "pbs": "-J"},
     )
-    copy_environment: str | None = field(
+    copy_environment: CopyEnvironment | None = field(
         default=None,
         metadata={"slurm": "--export", "pbs": "-V"},
     )
@@ -88,7 +157,7 @@ class Directives:
         default=None,
         metadata={"slurm": "--error", "pbs": "-e"},
     )
-    event_notification: str | None = field(
+    event_notification: EventNotification | None = field(
         default=None,
         metadata={"slurm": "--mail-type", "pbs": "-m"},
     )
@@ -121,19 +190,33 @@ class Directives:
         metadata={"slurm": "--time", "pbs": "-l walltime"},
     )
 
+    def _render(self, value: object, scheduler: str) -> str | None:
+        """Convert a directive value to its scheduler specific string."""
+        if value is None:
+            return None
+        if isinstance(value, (EventNotification, CopyEnvironment)):
+            return getattr(value, f"as_{scheduler}")()
+        return str(value)
+
     def as_slurm(self) -> dict[str, str | None]:
         """Return directives as used in slurm."""
         return {
-            field.metadata["slurm"]: getattr(self, field.name)
+            field.metadata["slurm"]: self._render(
+                getattr(self, field.name), "slurm"
+            )
             for field in fields(self)
         }
 
     def as_pbs(self) -> dict[str, str | None]:
         """Return directives as used in PBS."""
-        return {
-            field.metadata["pbs"]: getattr(self, field.name)
-            for field in fields(self)
-        }
+        result: dict[str, str | None] = {}
+        for f in fields(self):
+            value = getattr(self, f.name)
+            key = f.metadata["pbs"]
+            if isinstance(value, CopyEnvironment):
+                key = value.pbs_flag
+            result[key] = self._render(value, "pbs")
+        return result
 
 
 @dataclass
