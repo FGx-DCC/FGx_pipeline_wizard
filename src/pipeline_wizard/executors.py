@@ -7,7 +7,7 @@ from abc import ABCMeta, abstractmethod
 from functools import cached_property
 from typing import override
 
-from pipeline_wizard.directives import Directives
+from pipeline_wizard.directives import SKIP_DIRECTIVE, Directives
 from pipeline_wizard.exceptions import CommandNotFoundError
 from pipeline_wizard.types import AbsolutePath
 
@@ -181,11 +181,7 @@ class PBSExecutor(Executor):
 
         if directives:
             for directive, value in directives.as_pbs().items():
-                if (
-                    value is None
-                    or directive == ""
-                    or directive.startswith("-l")
-                ):
+                if value is None or directive == SKIP_DIRECTIVE:
                     continue
                 options.append(
                     directive if value == "" else f"{directive} {value}"

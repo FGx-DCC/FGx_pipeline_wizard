@@ -8,6 +8,8 @@ from dataclasses import dataclass, field, fields
 from enum import Flag, auto
 from typing import ClassVar, Protocol, runtime_checkable
 
+SKIP_DIRECTIVE = sentinel("SKIP_DIRECTIVE")
+
 
 @runtime_checkable
 class SchedulerValue(Protocol):
@@ -164,7 +166,10 @@ class Directives:
     )
     cpus_per_task: str | None = field(
         default=None,
-        metadata={"slurm": "--cpus-per-task", "pbs": "-l select"},
+        metadata={
+            "slurm": "--cpus-per-task",
+            "pbs": SKIP_DIRECTIVE,  # handled separately
+        },
     )
     error_file: str | None = field(
         default=None,
@@ -184,7 +189,10 @@ class Directives:
     )
     memory: Memory | None = field(
         default=None,
-        metadata={"slurm": "--mem", "pbs": "-l select"},
+        metadata={
+            "slurm": "--mem",
+            "pbs": SKIP_DIRECTIVE,  # handled separately
+        },
     )
     partition: str | None = field(
         default=None,
@@ -192,11 +200,14 @@ class Directives:
     )
     qos: str | None = field(
         default=None,
-        metadata={"slurm": "--qos", "pbs": ""},  # pbs has no 'qos'
+        metadata={"slurm": "--qos", "pbs": SKIP_DIRECTIVE},  # pbs has no 'qos'
     )
     task_count: str | None = field(
         default=None,
-        metadata={"slurm": "--ntasks", "pbs": "-l select"},
+        metadata={
+            "slurm": "--ntasks",
+            "pbs": SKIP_DIRECTIVE,  # handled separately
+        },
     )
     wall_time: str | None = field(
         default=None,
@@ -211,7 +222,7 @@ class Directives:
             return getattr(value, f"as_{scheduler}")()
         return str(value)
 
-    def as_slurm(self) -> dict[str, str | None]:
+    def as_slurm(self) -> dict[str, str | None | SKIP_DIRECTIVE]:
         """Return directives as used in slurm."""
         return {
             field.metadata["slurm"]: self._render(
@@ -220,7 +231,7 @@ class Directives:
             for field in fields(self)
         }
 
-    def as_pbs(self) -> dict[str, str | None]:
+    def as_pbs(self) -> dict[str, str | None | SKIP_DIRECTIVE]:
         """Return directives as used in PBS."""
         result: dict[str, str | None] = {}
         for f in fields(self):
