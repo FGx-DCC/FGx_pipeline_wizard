@@ -1,6 +1,31 @@
 """Job executors for running scripts in a pipeline."""
 
 import shutil
+from abc import ABCMeta, abstractmethod
+from pathlib import Path
+
+
+class Executor(metaclass=ABCMeta):
+    """A job executor, like slurm or pbs."""
+
+    @abstractmethod
+    def submit_text(
+        self,
+        script: Path,
+        directives: list[str] | None,
+        dependent_jobs: list[str] | None,
+    ) -> str:
+        """Return line for the pipeline wrapper script to submit the job.
+
+        Args:
+            script:
+                The script to submit to the executor.
+            directives:
+                The executor directives/options to add to the submit line.
+            dependent_jobs:
+                The list of jobs that this script depends on before it can run.
+
+        """
 
 
 def get_available_system_executors() -> list[str]:
