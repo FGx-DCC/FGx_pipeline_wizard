@@ -192,7 +192,7 @@ class Directives:
     )
     qos: str | None = field(
         default=None,
-        metadata={"slurm": "--qos", "pbs": "-l qos"},
+        metadata={"slurm": "--qos", "pbs": ""},  # pbs has no 'qos'
     )
     task_count: str | None = field(
         default=None,
