@@ -123,6 +123,8 @@ class SlurmExecutor(Executor):
             or directives.qos not in self._slurm_user_qos
         ):
             directives.qos = self._slurm_user_qos[0]  # arbitrary
+            if directives.qos == "":  # some clusters don't use qos
+                directives.qos = None
 
         return directives
 
