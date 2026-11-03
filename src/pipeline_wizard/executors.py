@@ -95,7 +95,10 @@ class SlurmExecutor(Executor):
 
     @cached_property
     def _slurm_user_qos(self) -> list[str]:
-        return [info[1] for info in self._slurm_user_info]
+        # For each line in sacctmgr, qos are given as a comma separated list
+        return [
+            qos for info in self._slurm_user_info for qos in info[1].split(",")
+        ]
 
     @cached_property
     def _slurm_partitions(self) -> list[str]:
