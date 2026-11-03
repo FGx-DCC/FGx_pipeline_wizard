@@ -77,6 +77,8 @@ class SlurmExecutor(Executor):
         for field in fields(directives):
             field_value = getattr(directives, field.name)
             if field_value is not None and field_value != "":
+                if field.name == "copy_environment":
+                    field_value = "ALL"
                 options.append(
                     f"{self._DIRECTIVES_MAP[field.name]}{field_value}"
                 )
