@@ -1,9 +1,14 @@
 """Job executors for running scripts in a pipeline."""
 
+from functools import cached_property
+from re import split
 import shutil
 from abc import ABCMeta, abstractmethod
+import subprocess
+import getpass
 from typing import override
 
+from pipeline_wizard.exceptions import CommandNotFoundError
 from pipeline_wizard.script import Directives
 from pipeline_wizard.types import AbsolutePath
 
@@ -48,6 +53,78 @@ class SlurmExecutor(Executor):
     ) -> str:
         """Return submit line for sbatch."""
         return ""
+
+    @cached_property
+    def _slurm_user_info(self) -> list[list[str]]:
+        """Return list of accounts and qos for user."""
+        if shutil.which("sacctmgr") is None:
+            raise CommandNotFoundError("sacctmgr")
+        user_info = [
+            info.split("|")
+            for info in subprocess.run(
+                [
+                    "sacctmgr",
+                    "show",
+                    "assoc",
+                    "-Pn",  # uses | for separator
+                    "format=user,account,qos",
+                    "grep",
+                    getpass.getuser(),
+                ],
+                capture_output=True,
+                text=True,
+            )
+            .stdout.strip()
+            .split("\n")
+        ]
+        return user_info
+
+    @cached_property
+    def _slurm_user_accounts(self) -> list[str]:
+        return [info[1] for info in self._slurm_user_info]
+
+    @cached_property
+    def _slurm_user_qos(self) -> list[str]:
+        return [info[2] for info in self._slurm_user_info]
+
+    @cached_property
+    def _slurm_partitions(self) -> list[str]:
+        if shutil.which("sinfo") is None:
+            raise CommandNotFoundError("sinfo")
+        return (
+            subprocess.run(
+                ["sinfo", "-h", "--format=%P"], capture_output=True, text=True
+            )
+            .stdout.strip()
+            .split("\n")
+        )
+
+    def _validate_directives(self, directives: Directives) -> Directives:
+        partitions = self._slurm_partitions
+        default_partition = ""
+        for parititon in partitions:
+            if parititon.endswith("*"):  # from sinfo man page
+                default_partition = parititon
+
+        if (
+            directives.partition is None
+            or directives.partition not in partitions
+        ):
+            directives.partition = default_partition
+
+        if (
+            directives.account is None
+            or directives.account not in self._slurm_user_accounts
+        ):
+            directives.account = self._slurm_user_accounts[0]  # arbitrary
+
+        if (
+            directives.qos is None
+            or directives.qos not in self._slurm_user_qos
+        ):
+            directives.qos = self._slurm_user_qos[0]  # arbitrary
+
+        return directives
 
 
 class LocalExecutor(Executor):
