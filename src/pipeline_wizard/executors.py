@@ -2,7 +2,8 @@
 
 import shutil
 from abc import ABCMeta, abstractmethod
-from pathlib import Path
+from typing import override
+
 from pipeline_wizard.types import AbsolutePath
 
 
@@ -31,6 +32,51 @@ class Executor(metaclass=ABCMeta):
                 run.
 
         """
+
+
+class SlurmExecutor(Executor):
+    """The slurm workload manager."""
+
+    @override
+    def submit_text(
+        self,
+        script: AbsolutePath,
+        job_name: str,
+        directives: list[str] | None,
+        dependent_jobs: list[str] | None,
+    ) -> str:
+        """Return submit line for sbatch."""
+        return ""
+
+
+class LocalExecutor(Executor):
+    """Use the shell for the executor (using the shebang line)."""
+
+    @override
+    def submit_text(
+        self,
+        script: AbsolutePath,
+        job_name: str,
+        directives: list[str] | None,
+        dependent_jobs: list[str] | None,
+    ) -> str:
+        """Return submit line for shell."""
+        return ""
+
+
+class PBSExecutor(Executor):
+    """Portable Batch System."""
+
+    @override
+    def submit_text(
+        self,
+        script: AbsolutePath,
+        job_name: str,
+        directives: list[str] | None,
+        dependent_jobs: list[str] | None,
+    ) -> str:
+        """Return submit line for qsub."""
+        return ""
 
 
 def get_available_system_executors() -> list[str]:
