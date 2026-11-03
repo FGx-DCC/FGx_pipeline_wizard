@@ -1,12 +1,15 @@
 """Methods to download files."""
 
-from pathlib import Path
 from shutil import copyfileobj
 from urllib.parse import urlparse
 from urllib.request import urlopen
 
+from pipeline_wizard.types import AbsolutePath
 
-def download_file(url: str, destination: Path, default_file_name: str) -> Path:
+
+def download_file(
+    url: str, destination: AbsolutePath, default_file_name: str
+) -> AbsolutePath:
     """Attempt to download a file to some path."""
     if destination.is_dir():
         destination = destination / default_file_name
