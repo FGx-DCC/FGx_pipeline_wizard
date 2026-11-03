@@ -181,7 +181,7 @@ class PBSExecutor(Executor):
 
         if directives:
             for directive, value in directives.as_pbs().items():
-                if value is None or value == "" or directive.startswith("-l"):
+                if value is None or directive.startswith("-l"):
                     continue
                 options.append(
                     directive if value == "" else f"{directive} {value}"
