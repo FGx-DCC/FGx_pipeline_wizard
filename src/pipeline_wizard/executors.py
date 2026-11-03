@@ -12,6 +12,7 @@ class Executor(metaclass=ABCMeta):
     def submit_text(
         self,
         script: Path,
+        job_name: str,
         directives: list[str] | None,
         dependent_jobs: list[str] | None,
     ) -> str:
@@ -20,10 +21,13 @@ class Executor(metaclass=ABCMeta):
         Args:
             script:
                 The script to submit to the executor.
+            job_name:
+                The name of the variable to put the job id (if any) into.
             directives:
                 The executor directives/options to add to the submit line.
             dependent_jobs:
-                The list of jobs that this script depends on before it can run.
+                The list of job names that this script depends on before it can
+                run.
 
         """
 
