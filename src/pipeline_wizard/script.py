@@ -105,3 +105,6 @@ class Script:
 
     requires: dict[str, Requirement] = field(default_factory=dict)
     """File dependencies (for example, a reference genome)."""
+
+    directives: Directives | None = field(default=None)
+    """The job scheduler directives for the script (if any)."""
