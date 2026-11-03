@@ -3,6 +3,7 @@
 import shutil
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
+from pipeline_wizard.types import AbsolutePath
 
 
 class Executor(metaclass=ABCMeta):
@@ -11,7 +12,7 @@ class Executor(metaclass=ABCMeta):
     @abstractmethod
     def submit_text(
         self,
-        script: Path,
+        script: AbsolutePath,
         job_name: str,
         directives: list[str] | None,
         dependent_jobs: list[str] | None,
