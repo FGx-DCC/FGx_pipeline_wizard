@@ -96,9 +96,8 @@ class SlurmExecutor(Executor):
                     "show",
                     "assoc",
                     "-Pn",  # uses | for separator
-                    "format=user,account,qos",
-                    "grep",
-                    getpass.getuser(),
+                    f"user={getpass.getuser()}",
+                    "format=account,qos",
                 ],
                 capture_output=True,
                 text=True,
@@ -110,11 +109,11 @@ class SlurmExecutor(Executor):
 
     @cached_property
     def _slurm_user_accounts(self) -> list[str]:
-        return [info[1] for info in self._slurm_user_info]
+        return [info[0] for info in self._slurm_user_info]
 
     @cached_property
     def _slurm_user_qos(self) -> list[str]:
-        return [info[2] for info in self._slurm_user_info]
+        return [info[1] for info in self._slurm_user_info]
 
     @cached_property
     def _slurm_partitions(self) -> list[str]:
