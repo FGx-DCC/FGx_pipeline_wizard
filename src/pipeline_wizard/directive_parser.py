@@ -80,12 +80,6 @@ _TABLES = {
 }
 
 
-def _seconds_to_walltime(total_seconds: int) -> WallTime:
-    hours, remainder = divmod(total_seconds, _SECONDS_IN_HOUR)
-    minutes, seconds = divmod(remainder, _SECONDS_IN_MINUTE)
-    return WallTime(hours, minutes, seconds)
-
-
 def _parse_slurm_walltime(text: str) -> WallTime:
     """Parse M, M:S, H:M:S, D-H, D-H:M or D-H:M:S."""
     days_text, dash, rest = text.strip().partition("-")
@@ -102,8 +96,8 @@ def _parse_slurm_walltime(text: str) -> WallTime:
         days = 0
     if not units or len(parts) > len(units):
         raise ValueError(f"Invalid slurm time: {text!r}")
-    return _seconds_to_walltime(
-        days * _SECONDS_IN_DAY
+    return WallTime(
+        seconds=days * _SECONDS_IN_DAY
         + sum(p * u for p, u in zip(parts, units, strict=True))
     )
 
@@ -116,7 +110,7 @@ def _parse_pbs_walltime(text: str) -> WallTime:
     total = 0
     for part in parts:
         total = total * 60 + part
-    return _seconds_to_walltime(total)
+    return WallTime(seconds=total)
 
 
 def _parse_pbs_memory(text: str) -> Memory:

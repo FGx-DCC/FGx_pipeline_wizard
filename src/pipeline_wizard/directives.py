@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass, field, fields
-from datetime import time
+from datetime import time, timedelta
 from enum import Flag, auto
 from typing import ClassVar, Protocol, runtime_checkable
 
@@ -20,18 +20,30 @@ class SchedulerValue(Protocol):
     def as_pbs(self) -> str: ...  # noqa: D102
 
 
-class WallTime(time):
-    """A datetime.time class implementing the SchedulerValue protocol."""
+class WallTime(timedelta):
+    """A datetime.timedelta class implementing the SchedulerValue protocol.
+
+    We use timedelta here as time doesn't go above 1 day (which many jobs can
+    have).
+
+    """
+
+    _SECONDS_IN_MINUTE = 60
+    _SECONDS_IN_HOUR = 3600
 
     def as_slurm(self) -> str:
         """Return as a slurm --time value."""
-        return self.strftime("%H:%M:%S")
+        hours, seconds = divmod(self.seconds, self._SECONDS_IN_HOUR)
+        minutes, seconds = divmod(seconds, self._SECONDS_IN_MINUTE)
+        return f"{self.days}-{hours}:{minutes}:{seconds}"
 
     def as_pbs(self) -> str:
         """Return as a pbs -l walltime value."""
-        # the only difference between slurm and pbs is that slurm allows for
-        # a days element (e.g. 1-00:00:00), we ignore this for simplicity.
-        return self.as_slurm()
+        hours, seconds = divmod(
+            int(self.total_seconds()), self._SECONDS_IN_HOUR
+        )
+        minutes, seconds = divmod(seconds, self._SECONDS_IN_MINUTE)
+        return f"{hours}:{minutes}:{seconds}"
 
 
 class EventNotification(Flag):
