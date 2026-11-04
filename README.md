@@ -174,11 +174,11 @@ after = ["write"]
 
 ## Caveats and assumptions
 
-- Scripts that contain any of the following directives:
-  'qos,account,partition/queue', should have these removed. The generator
+- Scripts that contain directives that are site specific (such as
+  qos,account,nodelist (*etc.*)) should have these removed. The generator
   assumes that the site has defaults for each of these (possible on both slurm
   and pbs, but can be disabled). Inclusion of these will likely break your
-  pipeline on other systems.
+  pipeline on other systems (as they won't have these resources).
 - Scripts will obtain configuration parameters from the environment. The config
   file generated consists of lines like `export PARAMETER_NAME=value`. A
   reminder that all parameters will be capitalised when added to the
