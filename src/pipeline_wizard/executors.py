@@ -16,7 +16,7 @@ class Executor(metaclass=ABCMeta):
     """A job executor, like slurm or pbs."""
 
     @abstractmethod
-    def executor_name() -> str:
+    def executor_name(self) -> str:
         """Return the name of the executor."""
 
     @abstractmethod
@@ -47,7 +47,7 @@ class SlurmExecutor(Executor):
     """The slurm workload manager."""
 
     @override
-    def executor_name() -> str:
+    def executor_name(self) -> str:
         """Return the name of the executor."""
         return "slurm"
 
@@ -155,7 +155,7 @@ class LocalExecutor(Executor):
     """Use the shell for the executor (using the shebang line)."""
 
     @override
-    def executor_name() -> str:
+    def executor_name(self) -> str:
         """Return the name of the executor."""
         return "local (bash)"
 
@@ -181,7 +181,7 @@ class PBSExecutor(Executor):
     """Portable Batch System."""
 
     @override
-    def executor_name() -> str:
+    def executor_name(self) -> str:
         """Return the name of the executor."""
         return "PBS"
 
