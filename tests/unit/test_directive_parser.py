@@ -126,10 +126,6 @@ def test_reads_slurm_wall_times(
     assert directives.wall_time == expected
 
 
-@pytest.mark.xfail(
-    reason="Slurm D-H and D-H:M wall times are rejected (zip length check)",
-    strict=True,
-)
 @pytest.mark.parametrize(
     ("text", "expected"),
     [

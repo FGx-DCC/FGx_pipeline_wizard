@@ -95,9 +95,12 @@ def _parse_slurm_walltime(text: str) -> WallTime:
         days = 0
     if not units or len(parts) > len(units):
         raise ValueError(f"Invalid slurm time: {text!r}")
+
+    # We don't use 'strict=True' here as the parser should account for a lack
+    # of minutes or seconds
     return WallTime(
         seconds=days * _SECONDS_IN_DAY
-        + sum(p * u for p, u in zip(parts, units, strict=True))
+        + sum(p * u for p, u in zip(parts, units))  # noqa: B905
     )
 
 
