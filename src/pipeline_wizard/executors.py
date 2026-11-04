@@ -76,7 +76,7 @@ class SlurmExecutor(Executor):
                 continue
             options.append(f"{directive}={shlex.quote(value)}")
 
-        return f"{job_variable}=$(sbatch {' '.join(options)} {script})"
+        return f"{job_variable}=$(sbatch {' '.join(options)} {script} | cut -d';' -f1)"  # noqa: E501
 
 
 class LocalExecutor(Executor):
