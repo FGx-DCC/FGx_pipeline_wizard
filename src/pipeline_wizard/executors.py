@@ -5,7 +5,7 @@ import shutil
 from abc import ABCMeta, abstractmethod
 from typing import override
 
-from pipeline_wizard.directives import SKIP_DIRECTIVE, Directives
+from pipeline_wizard.directives import Directives
 from pipeline_wizard.types import AbsolutePath
 
 
@@ -129,7 +129,7 @@ class PBSExecutor(Executor):
         if dependent_jobs:
             options.append("-W depend=afterok:" + ":".join(dependent_jobs))
         for directive, value in directives.as_pbs().items():
-            if value is None or directive == SKIP_DIRECTIVE:
+            if value is None:
                 continue
             options.append(
                 directive

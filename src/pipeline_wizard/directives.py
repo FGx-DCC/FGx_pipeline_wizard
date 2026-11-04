@@ -5,11 +5,9 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass, field, fields
-from datetime import time, timedelta
+from datetime import timedelta
 from enum import Flag, auto
 from typing import ClassVar, Protocol, runtime_checkable
-
-SKIP_DIRECTIVE = sentinel("SKIP_DIRECTIVE")
 
 
 @runtime_checkable
@@ -191,7 +189,6 @@ class Directives:
         default=None,
         metadata={
             "slurm": "--cpus-per-task",
-            "pbs": SKIP_DIRECTIVE,  # handled separately
         },
     )
     # Slurm allows for filename patters (%u, %x, %j), but pbs does not.
@@ -217,14 +214,12 @@ class Directives:
         default=None,
         metadata={
             "slurm": "--mem",
-            "pbs": SKIP_DIRECTIVE,  # handled separately
         },
     )
     task_count: str | None = field(
         default=None,
         metadata={
             "slurm": "--ntasks",
-            "pbs": SKIP_DIRECTIVE,  # handled separately
         },
     )
     wall_time: WallTime | None = field(
@@ -240,19 +235,22 @@ class Directives:
             return getattr(value, f"as_{scheduler}")()
         return str(value)
 
-    def as_slurm(self) -> dict[str | SKIP_DIRECTIVE, str | None]:
+    def as_slurm(self) -> dict[str, str | None]:
         """Return directives as used in slurm."""
         return {
             field.metadata["slurm"]: self._render(
                 getattr(self, field.name), "slurm"
             )
             for field in fields(self)
+            if "slurm" in field.metadata
         }
 
-    def as_pbs(self) -> dict[str | SKIP_DIRECTIVE, str | None]:
+    def as_pbs(self) -> dict[str, str | None]:
         """Return directives as used in PBS."""
-        result: dict[str | SKIP_DIRECTIVE, str | None] = {}
+        result: dict[str, str | None] = {}
         for f in fields(self):
+            if "pbs" not in f.metadata:
+                continue
             value = getattr(self, f.name)
             key = f.metadata["pbs"]
             if isinstance(value, CopyEnvironment):

@@ -9,7 +9,6 @@ from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import fields
 
 from pipeline_wizard.directives import (
-    SKIP_DIRECTIVE,
     CopyEnvironment,
     Directives,
     EventNotification,
@@ -63,9 +62,9 @@ class FlagLookupTable:
         self.resource_to_field: dict[str, str] = {}
 
         for f in fields(Directives):
-            flag = f.metadata[scheduler]
-            if flag is SKIP_DIRECTIVE:
+            if scheduler not in f.metadata:
                 continue
+            flag = f.metadata[scheduler]
             self.field_to_flag[f.name] = flag
             if flag.startswith("-l "):
                 self.resource_to_field[flag[3:]] = f.name
