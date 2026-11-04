@@ -8,6 +8,8 @@ from functools import cached_property
 from graphlib import CycleError, TopologicalSorter
 from pathlib import Path
 
+from pipeline_wizard.directive_parser import read_directives
+from pipeline_wizard.directives import Directives
 from pipeline_wizard.exceptions import (
     NotADagError,
     NotUpperError,
@@ -281,6 +283,10 @@ class Dag:
                 )
 
             try:
+                if full_script_path.exists():
+                    directives = read_directives(full_script_path)
+                else:
+                    directives = Directives()
                 scripts[name] = Script(
                     name=name,
                     path=full_script_path,
@@ -297,6 +303,7 @@ class Dag:
                             "parameters", {}
                         ).items()
                     },
+                    directives=directives,
                 )
             except NotUpperError as exc:
                 raise PipelineParseError(f"{exc}", dag_path) from exc
