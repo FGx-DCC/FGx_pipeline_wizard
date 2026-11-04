@@ -15,6 +15,12 @@ from pipeline_wizard.exceptions import (
     NotUpperError,
     PipelineParseError,
 )
+from pipeline_wizard.executors import (
+    Executor,
+    LocalExecutor,
+    PBSExecutor,
+    SlurmExecutor,
+)
 from pipeline_wizard.script import Parameter, Requirement, Script
 from pipeline_wizard.types import AbsolutePath
 from pipeline_wizard.wizard import ANSIColors, tell
@@ -33,6 +39,7 @@ class Dag:
         scripts: dict[str, Script],
         script_dependencies: dict[str, set[str]],
         global_parameters: dict[str, Parameter],
+        executor: Executor | None,
     ) -> None:
         """Initialise the instance."""
         self.name = name
@@ -41,6 +48,7 @@ class Dag:
         self._scripts = scripts
         self._script_dependencies = script_dependencies
         self.global_parameters = global_parameters
+        self.executor = executor
 
     def title(self) -> str:
         """Return title of the pipeline."""
@@ -176,6 +184,7 @@ class Dag:
                 if node not in removed
             },
             global_parameters=self.global_parameters,
+            executor=self.executor,
         )
 
     @property
@@ -330,6 +339,15 @@ class Dag:
                 scripts[dependency] for dependency in sorted(expanded)
             ]
 
+        executor = None
+        match dag_data.get("executor"):
+            case "slurm":
+                executor = SlurmExecutor()
+            case "pbs":
+                executor = PBSExecutor()
+            case "local":
+                executor = LocalExecutor()
+
         return cls(
             name=dag_data.get("name", "unnamed_pipeline"),
             description=dag_data.get("description", ""),
@@ -337,4 +355,5 @@ class Dag:
             scripts=scripts,
             script_dependencies=script_dependencies,
             global_parameters=global_parameters,
+            executor=executor,
         )

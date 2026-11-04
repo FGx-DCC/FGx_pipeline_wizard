@@ -73,9 +73,8 @@ and config file should go.
 Are there other options out there? Yes, of course, there is nextflow and
 snakemake and hundreds of other options. What sets this apart is that it tries
 to make things easier for the user. Researchers (in my experience) don't like
-to install a new tool to run a pipeline. So this assumes 2 things, the user
-uses slurm (very common, and if needed other executors can be added) and the
-user can get python (conda is incredibly common in research contexts already).
+to install a new tool to run a pipeline. So this assumes 1 thing, the user can
+get python (conda is incredibly common in research contexts already).
 
 The problem with something like nextflow or snakemake is that you need to write
 your pipeline in the form the tool wants (granted, that's the case with this
@@ -113,6 +112,7 @@ script dependencies. Here's an example pipeline:
 ```toml
 name = "Test Pipeline" # The name of the pipeline
 description = "A test pipeline with read, clean and write steps" # short description
+executor = "slurm" # slurm/pbs/local, ommit if the user can choose
 
 [parameters] # These will be global parameters, given as `key = value pairs`
 OUT_DIRECTORY = "/path/to/output/directory/" # The key must be capitalised
@@ -174,14 +174,19 @@ after = ["write"]
 
 ## Caveats and assumptions
 
-- The [slurm workload manager](https://slurm.schedmd.com/) is used as a job
-  executor in the scripts being ran
-  - Under this light, all scripts in the pipeline being generated are expected
-    to run if called with `sbatch` (meaning they need a shebang and #SBATCH
-    directives)
-  - Currently, no cluster specific information is asked of the user (so cluster
-    specific `#SBATCH` directives should not be present in pipeline scripts).
 - Scripts will obtain configuration parameters from the environment. The config
   file generated consists of lines like `export PARAMETER_NAME=value`. A
   reminder that all parameters will be capitalised when added to the
   configuration file.
+- The local executor is highly basic and submits each job sequentially (rather
+  than the parallel nature achieved easily with job schedulers).
+- If no executor is specified it is assumed that the scripts are already
+  written for either slurm or pbs and do not contain any variables that are
+  specific to the job scheduler. For example, slurm has variables like
+  '$SLURM_JOB_ID', there is currently nothing in place to translate this over
+  to PBS or local.
+  - Under this light, if your script uses anything specific to your scheduler,
+    make sure to set the executor in the toml file for the pipeline.
+- For slurm->pbs translation, there is no equivalent to filename patterns (like
+  '%u' for user). As such these file names will be translated literally, keep
+  this in mind if you want your pipeline to be transferrable.
