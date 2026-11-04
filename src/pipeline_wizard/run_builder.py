@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 
 from pipeline_wizard.dag import Dag, Step
+from pipeline_wizard.executors import LocalExecutor
+from pipeline_wizard.types import AbsolutePath
 
 
 class RunBuilder:
@@ -18,17 +20,22 @@ class RunBuilder:
 
     def __init__(
         self,
-        scripts_directory: Path,
-        config_path: Path,
+        scripts_directory: AbsolutePath,
+        config_path: AbsolutePath,
         pipeline: Dag,
         starting_step: int,
     ) -> None:
         """Initialise the instance."""
         self._scripts_directory = scripts_directory
         self._config_path = config_path
-        self._job_names: dict[str, str] = {}
+        self._job_variables: dict[str, str] = {}
         self._contents = []
         self._step_counter = starting_step
+        if pipeline.executor is None:
+            # fallback (always available)
+            self._executor = LocalExecutor()
+        else:
+            self._executor = pipeline.executor
 
         self._add_header(pipeline)
 
@@ -53,31 +60,28 @@ class RunBuilder:
         self._contents.append(f"## Step {self._step_counter}")
 
         for idx, script in enumerate(step, 1):
-            job_name = f"jobid_{self._step_counter}_{idx}"
-            self._job_names[script.name] = job_name
+            job_variable = f"jobid_{self._step_counter}_{idx}"
+            self._job_variables[script.name] = job_variable
             full_script_path = self._scripts_directory / script.path
-            dependency_job_names = [
-                f'"${{{self._job_names[dependent_script.name]}}}"'
+            dependency_job_variables = [
+                f'"${{{self._job_variables[dependent_script.name]}}}"'
                 for dependent_script in script.dependencies
-                if dependent_script.name in self._job_names
+                if dependent_script.name in self._job_variables
             ]
-            opts = (
-                "--dependency=afterok:" + ":".join(dependency_job_names)
-                if dependency_job_names != []
-                else ""
-            )
-            opts += " --parsable"
-
-            self._contents.append("")
-
             description = (
                 script.description
                 if script.description
                 else "No description given"
             )
+            self._contents.append("")
             self._contents.append(f"# {script.name} -> {description}")
             self._contents.append(
-                f"{job_name}=$(sbatch {opts} {full_script_path})"  # noqa: E501
+                self._executor.submit_text(
+                    full_script_path,
+                    job_variable,
+                    script.directives,
+                    dependency_job_variables,
+                )
             )
         self._contents.append("")
 
