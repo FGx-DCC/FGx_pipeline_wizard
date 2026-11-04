@@ -161,7 +161,7 @@ class PBSExecutor(Executor):
             resources.append(f"-l {select}")
 
         if directives.wall_time:
-            resources.append(f"-l walltime={directives.wall_time}")
+            resources.append(f"-l walltime={directives.wall_time.as_pbs()}")
 
         return resources
 
