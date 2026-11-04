@@ -186,6 +186,9 @@ class Directives:
             "pbs": SKIP_DIRECTIVE,  # handled separately
         },
     )
+    # Slurm allows for filename patters (%u, %x, %j), but pbs does not.
+    # Therefore we just treat file paths as pure strings and ignore this
+    # detail.
     error_file: str | None = field(
         default=None,
         metadata={"slurm": "--error", "pbs": "-e"},
