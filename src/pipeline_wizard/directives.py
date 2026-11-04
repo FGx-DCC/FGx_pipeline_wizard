@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass, field, fields
+from datetime import time
 from enum import Flag, auto
 from typing import ClassVar, Protocol, runtime_checkable
 
@@ -17,6 +18,20 @@ class SchedulerValue(Protocol):
 
     def as_slurm(self) -> str: ...  # noqa: D102
     def as_pbs(self) -> str: ...  # noqa: D102
+
+
+class WallTime(time):
+    """A datetime.time class implementing the SchedulerValue protocol."""
+
+    def as_slurm(self) -> str:
+        """Return as a slurm --time value."""
+        return self.strftime("%H:%M:%S")
+
+    def as_pbd(self) -> str:
+        """Return as a pbs -l walltime value."""
+        # the only difference between slurm and pbs is that slurm allows for
+        # a days element (e.g. 1-00:00:00), we ignore this for simplicity.
+        return self.as_slurm()
 
 
 class EventNotification(Flag):
@@ -209,7 +224,7 @@ class Directives:
             "pbs": SKIP_DIRECTIVE,  # handled separately
         },
     )
-    wall_time: str | None = field(
+    wall_time: WallTime | None = field(
         default=None,
         metadata={"slurm": "--time", "pbs": "-l walltime"},
     )
