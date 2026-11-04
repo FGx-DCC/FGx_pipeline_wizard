@@ -317,7 +317,7 @@ class Dag:
                     },
                     directives=directives,
                 )
-            except NotUpperError as exc:
+            except (NotUpperError, ValueError) as exc:
                 raise PipelineParseError(f"{exc}", dag_path) from exc
             script_dependencies[name] = after
 
