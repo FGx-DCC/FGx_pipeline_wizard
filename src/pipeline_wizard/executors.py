@@ -16,6 +16,10 @@ class Executor(metaclass=ABCMeta):
     """A job executor, like slurm or pbs."""
 
     @abstractmethod
+    def executor_name() -> str:
+        """Return the name of the executor."""
+
+    @abstractmethod
     def submit_text(
         self,
         script: AbsolutePath,
@@ -41,6 +45,11 @@ class Executor(metaclass=ABCMeta):
 
 class SlurmExecutor(Executor):
     """The slurm workload manager."""
+
+    @override
+    def executor_name() -> str:
+        """Return the name of the executor."""
+        return "slurm"
 
     @override
     def submit_text(
@@ -146,6 +155,11 @@ class LocalExecutor(Executor):
     """Use the shell for the executor (using the shebang line)."""
 
     @override
+    def executor_name() -> str:
+        """Return the name of the executor."""
+        return "local (bash)"
+
+    @override
     def submit_text(
         self,
         script: AbsolutePath,
@@ -165,6 +179,11 @@ class LocalExecutor(Executor):
 
 class PBSExecutor(Executor):
     """Portable Batch System."""
+
+    @override
+    def executor_name() -> str:
+        """Return the name of the executor."""
+        return "PBS"
 
     @override
     def submit_text(
