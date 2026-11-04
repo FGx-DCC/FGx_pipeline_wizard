@@ -342,14 +342,19 @@ class Dag:
                 scripts[dependency] for dependency in sorted(expanded)
             ]
 
-        executor = None
-        match dag_data.get("executor"):
+        match dag_executor := dag_data.get("executor"):
             case "slurm":
                 executor = SlurmExecutor()
             case "pbs":
                 executor = PBSExecutor()
             case "local":
                 executor = LocalExecutor()
+            case None:
+                executor = None
+            case _:
+                raise PipelineParseError(
+                    f"'{dag_executor}' is not a valid executor", dag_path
+                )
 
         return cls(
             name=dag_data.get("name", "unnamed_pipeline"),
