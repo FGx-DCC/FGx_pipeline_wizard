@@ -232,7 +232,11 @@ class Directives:
         if value is None:
             return None
         if isinstance(value, SchedulerValue):
-            return getattr(value, f"as_{scheduler}")()
+            match scheduler:
+                case "slurm":
+                    return value.as_slurm()
+                case "pbs":
+                    return value.as_pbs()
         return str(value)
 
     def as_slurm(self) -> dict[str, str | None]:
