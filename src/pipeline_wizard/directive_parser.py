@@ -318,7 +318,14 @@ def _parse_directives(lines: Iterable[str]) -> Directives:
 def read_directives(
     script_path: AbsolutePath,
 ) -> Directives:
-    """Read the 'header' of a script and return its `Directives`."""
+    """Read the 'header' of a script and return its `Directives`.
+
+    Raises:
+        ValueError:
+            When a value couldn't be parsed. For example, if a PBS script has
+            a walltime like '1-10:10:10' (invalid).
+
+    """
     if isinstance(script_path, (str, os.PathLike)):
         with open(script_path, encoding="utf-8", errors="replace") as handle:
             header = list(_header_lines(handle))
