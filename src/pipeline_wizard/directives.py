@@ -233,7 +233,7 @@ class Directives:
 
     def as_pbs(self) -> dict[str, str | None | SKIP_DIRECTIVE]:
         """Return directives as used in PBS."""
-        result: dict[str, str | None] = {}
+        result: dict[str, str | None | SKIP_DIRECTIVE] = {}
         for f in fields(self):
             value = getattr(self, f.name)
             key = f.metadata["pbs"]
