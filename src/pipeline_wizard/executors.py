@@ -64,8 +64,9 @@ class SlurmExecutor(Executor):
         dependent_jobs: list[str] | None,
     ) -> str:
         """Return submit line for sbatch."""
-        if not directives:
+        if directives is None:
             raise ValueError("Directives required for slurm scripts")
+
         options = ["--parsable"]
         if dependent_jobs:
             options.append("--dependency=afterok:" + ":".join(dependent_jobs))
@@ -120,18 +121,19 @@ class PBSExecutor(Executor):
         dependent_jobs: list[str] | None,
     ) -> str:
         """Return submit line for qsub."""
+        if directives is None:
+            raise ValueError("Directives required for pbs scripts")
+
         options = []
         if dependent_jobs:
             options.append("-W depend=afterok:" + ":".join(dependent_jobs))
-
-        if directives:
-            for directive, value in directives.as_pbs().items():
-                if value is None or directive == SKIP_DIRECTIVE:
-                    continue
-                options.append(
-                    directive if value == "" else f"{directive} {value}"
-                )
-            options.extend(self._resource_options(directives))
+        for directive, value in directives.as_pbs().items():
+            if value is None or directive == SKIP_DIRECTIVE:
+                continue
+            options.append(
+                directive if value == "" else f"{directive} {value}"
+            )
+        options.extend(self._resource_options(directives))
 
         return f"{job_variable}=$(qsub {' '.join(options)} {script})"
 
