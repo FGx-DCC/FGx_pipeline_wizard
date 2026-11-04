@@ -27,7 +27,7 @@ class WallTime(time):
         """Return as a slurm --time value."""
         return self.strftime("%H:%M:%S")
 
-    def as_pbd(self) -> str:
+    def as_pbs(self) -> str:
         """Return as a pbs -l walltime value."""
         # the only difference between slurm and pbs is that slurm allows for
         # a days element (e.g. 1-00:00:00), we ignore this for simplicity.
