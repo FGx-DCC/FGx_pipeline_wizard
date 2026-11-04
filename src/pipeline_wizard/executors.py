@@ -235,11 +235,11 @@ class PBSExecutor(Executor):
         return resources
 
 
-def get_available_system_executors() -> list[type[Executor]]:
+def get_available_system_executors() -> list[Executor]:
     """Return all available executors."""
-    available_executors: list[type[Executor]] = [LocalExecutor]
+    available_executors: list[Executor] = [LocalExecutor()]
     if shutil.which("sbatch") is not None:
-        available_executors.append(SlurmExecutor)
+        available_executors.append(SlurmExecutor())
     if shutil.which("qsub") is not None:
-        available_executors.append(PBSExecutor)
+        available_executors.append(PBSExecutor())
     return available_executors
