@@ -1,5 +1,6 @@
 """Job executors for running scripts in a pipeline."""
 
+import shlex
 import shutil
 from abc import ABCMeta, abstractmethod
 from typing import override
@@ -73,7 +74,7 @@ class SlurmExecutor(Executor):
         for directive, value in directives.as_slurm().items():
             if value is None or value == "":
                 continue
-            options.append(f"{directive}={value}")
+            options.append(f"{directive}={shlex.quote(value)}")
 
         return f"{job_variable}=$(sbatch {' '.join(options)} {script})"
 
@@ -131,7 +132,9 @@ class PBSExecutor(Executor):
             if value is None or directive == SKIP_DIRECTIVE:
                 continue
             options.append(
-                directive if value == "" else f"{directive} {value}"
+                directive
+                if value == ""
+                else f"{directive} {shlex.quote(value)}"
             )
         options.extend(self._resource_options(directives))
 
