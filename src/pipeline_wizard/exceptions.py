@@ -3,13 +3,6 @@
 from pathlib import Path
 
 
-class CommandNotFoundError(Exception):
-    """Raised when a command could not be found."""
-
-    def __init__(self, command: str) -> None:
-        super().__init__(f"'{command}' could not be found on $PATH")
-
-
 class NotUpperError(Exception):
     """Raised when a name is not in upper case."""
 
