@@ -240,7 +240,7 @@ class Directives:
             return getattr(value, f"as_{scheduler}")()
         return str(value)
 
-    def as_slurm(self) -> dict[str, str | None | SKIP_DIRECTIVE]:
+    def as_slurm(self) -> dict[str | SKIP_DIRECTIVE, str | None]:
         """Return directives as used in slurm."""
         return {
             field.metadata["slurm"]: self._render(
@@ -249,9 +249,9 @@ class Directives:
             for field in fields(self)
         }
 
-    def as_pbs(self) -> dict[str, str | None | SKIP_DIRECTIVE]:
+    def as_pbs(self) -> dict[str | SKIP_DIRECTIVE, str | None]:
         """Return directives as used in PBS."""
-        result: dict[str, str | None | SKIP_DIRECTIVE] = {}
+        result: dict[str | SKIP_DIRECTIVE, str | None] = {}
         for f in fields(self):
             value = getattr(self, f.name)
             key = f.metadata["pbs"]
