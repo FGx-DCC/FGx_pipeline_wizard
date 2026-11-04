@@ -64,12 +64,6 @@ class SlurmExecutor(Executor):
         if not directives:
             raise ValueError("Directives required for slurm scripts")
         options = ["--parsable"]
-
-        if self._qos_options and directives.qos not in self._qos_options:
-            # If there are qos on the machine, it is likely enforced, we'll go
-            # with the first one at random for now.
-            directives = replace(directives, qos=self._qos_options[0])
-
         if dependent_jobs:
             options.append("--dependency=afterok:" + ":".join(dependent_jobs))
         for directive, value in directives.as_slurm().items():
@@ -78,29 +72,6 @@ class SlurmExecutor(Executor):
             options.append(f"{directive}={value}")
 
         return f"{job_variable}=$(sbatch {' '.join(options)} {script})"
-
-    @cached_property
-    def _qos_options(self) -> set[str]:
-        """Get all quality of service from sacctmgr if it exists."""
-        if shutil.which("sacctmgr") is None:
-            raise CommandNotFoundError("sacctmgr")
-        return set(
-            subprocess.run(
-                [
-                    "sacctmgr",
-                    "show",
-                    "assoc",
-                    "-Pn",  # uses | for separator
-                    f"user={getpass.getuser()}",
-                    "format=qos",
-                ],
-                capture_output=True,
-                text=True,
-            )
-            .stdout.strip()
-            .replace("\n", ",")
-            .split(",")
-        )
 
 
 class LocalExecutor(Executor):
