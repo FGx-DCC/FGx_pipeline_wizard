@@ -197,3 +197,5 @@ after = ["write"]
   this in mind if you want your pipeline to be transferrable.
 - The PBS dialect chosen is PBS Pro (this would break arrays for example, where
   TORQUE uses `-t`, not `-J`).
+- Although slurm accepts `--mem=0`, there is no PBS equivalent. As such an
+  error is raised if this value is used for this directive

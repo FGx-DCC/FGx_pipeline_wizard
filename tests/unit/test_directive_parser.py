@@ -436,21 +436,3 @@ def test_pbs_select_round_trips_cpus_per_task(tmp_path: Path) -> None:
 
     assert directives.cpus_per_task == "2"
     assert directives.task_count == "4"
-
-
-@pytest.mark.xfail(
-    reason="--mem=0 (all node memory) is valid in slurm but raises",
-    strict=True,
-)
-def test_slurm_mem_zero_is_accepted(tmp_path: Path) -> None:
-    """Should not fail on slurm's `--mem=0`.
-
-    Given:
-        A script with `#SBATCH --mem=0`.
-    When:
-        Its directives are read.
-    Then:
-        No error is raised.
-
-    """
-    _read(tmp_path, "#SBATCH --mem=0\n")
