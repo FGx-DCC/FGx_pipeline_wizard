@@ -11,6 +11,11 @@ from pipeline_wizard.exceptions import (
     NotUpperError,
     PipelineParseError,
 )
+from pipeline_wizard.executors import (
+    LocalExecutor,
+    PBSExecutor,
+    SlurmExecutor,
+)
 from pipeline_wizard.script import Parameter, Requirement
 
 CHAIN = """
@@ -439,3 +444,135 @@ def test_print_diagram_of_empty_pipeline(
     make_dag(CHAIN).prune("a").print_diagram()
 
     assert "empty" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("name", "executor"),
+    [
+        ("slurm", SlurmExecutor()),
+        ("pbs", PBSExecutor()),
+        ("local", LocalExecutor()),
+    ],
+)
+def test_reads_executor(
+    make_dag: Callable[..., Dag], name: str, executor: object
+) -> None:
+    """Should read the executor named in the toml.
+
+    Given:
+        A pipeline toml with an `executor` key.
+    When:
+        The dag is read.
+    Then:
+        The dag has the matching executor.
+
+    """
+    dag = make_dag(f'executor = "{name}"\n[steps.a]\npath = "a.sh"\n')
+
+    assert dag.executor == executor
+
+
+def test_executor_defaults_to_none(make_dag: Callable[..., Dag]) -> None:
+    """Should leave the executor unset when the toml has none.
+
+    Given:
+        A pipeline toml without an `executor` key.
+    When:
+        The dag is read.
+    Then:
+        The executor is None.
+
+    """
+    assert make_dag(CHAIN).executor is None
+
+
+def test_invalid_executor_raises(make_dag: Callable[..., Dag]) -> None:
+    """Should reject unknown executors.
+
+    Given:
+        A pipeline toml with an unsupported executor.
+    When:
+        The dag is read.
+    Then:
+        A PipelineParseError is raised.
+
+    """
+    with pytest.raises(PipelineParseError, match="not a valid executor"):
+        make_dag('executor = "lsf"\n[steps.a]\npath = "a.sh"\n')
+
+
+def test_pruned_dag_keeps_executor(make_dag: Callable[..., Dag]) -> None:
+    """Should keep the executor when pruning scripts.
+
+    Given:
+        A dag with an executor.
+    When:
+        A script is pruned.
+    Then:
+        The new dag has the same executor.
+
+    """
+    dag = make_dag('executor = "pbs"\n' + CHAIN)
+
+    assert dag.prune("c").executor == PBSExecutor()
+
+
+def test_reads_script_directives(
+    make_dag: Callable[..., Dag], tmp_path: Path
+) -> None:
+    """Should read scheduler directives from existing scripts.
+
+    Given:
+        A script on disk with an #SBATCH header.
+    When:
+        The dag is read.
+    Then:
+        The script's directives reflect the header.
+
+    """
+    (tmp_path / "a.sh").write_text("#!/bin/bash\n#SBATCH --job-name=hello\n")
+
+    dag = make_dag('[steps.a]\npath = "a.sh"\n')
+
+    directives = dag.steps[0][0].directives
+    assert directives is not None
+    assert directives.job_name == "hello"
+
+
+def test_missing_script_gets_empty_directives(
+    make_dag: Callable[..., Dag],
+) -> None:
+    """Should still give directives to scripts that don't exist.
+
+    Given:
+        A pipeline referencing a script that doesn't exist.
+    When:
+        The dag is read.
+    Then:
+        The script has directives with nothing set.
+
+    """
+    dag = make_dag('[steps.a]\npath = "a.sh"\n')
+
+    directives = dag.steps[0][0].directives
+    assert directives is not None
+    assert set(directives.as_slurm().values()) == {None}
+
+
+def test_unparseable_directives_raise_parse_error(
+    make_dag: Callable[..., Dag], tmp_path: Path
+) -> None:
+    """Should report malformed directives as a pipeline parse error.
+
+    Given:
+        A script with an invalid #SBATCH --time.
+    When:
+        The dag is read.
+    Then:
+        A PipelineParseError is raised.
+
+    """
+    (tmp_path / "a.sh").write_text("#SBATCH --time=nonsense\n")
+
+    with pytest.raises(PipelineParseError):
+        make_dag('[steps.a]\npath = "a.sh"\n')
