@@ -112,7 +112,7 @@ script dependencies. Here's an example pipeline:
 ```toml
 name = "Test Pipeline" # The name of the pipeline
 description = "A test pipeline with read, clean and write steps" # short description
-executor = "slurm" # slurm/pbs/local, ommit if the user can choose
+executor = "slurm" # slurm/pbs/local, omit if the user can choose
 
 [parameters] # These will be global parameters, given as `key = value pairs`
 OUT_DIRECTORY = "/path/to/output/directory/" # The key must be capitalised
