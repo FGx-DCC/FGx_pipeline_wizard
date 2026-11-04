@@ -195,3 +195,5 @@ after = ["write"]
 - For slurm->pbs translation, there is no equivalent to filename patterns (like
   '%u' for user). As such these file names will be translated literally, keep
   this in mind if you want your pipeline to be transferrable.
+- The PBS dialect chosen is PBS Pro (this would break arrays for example, where
+  TORQUE uses `-t`, not `-J`).
