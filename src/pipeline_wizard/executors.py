@@ -1,15 +1,10 @@
 """Job executors for running scripts in a pipeline."""
 
-from dataclasses import replace
-import getpass
 import shutil
-import subprocess
 from abc import ABCMeta, abstractmethod
-from functools import cached_property
 from typing import override
 
 from pipeline_wizard.directives import SKIP_DIRECTIVE, Directives
-from pipeline_wizard.exceptions import CommandNotFoundError
 from pipeline_wizard.types import AbsolutePath
 
 

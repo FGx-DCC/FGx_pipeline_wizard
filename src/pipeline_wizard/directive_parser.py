@@ -28,15 +28,12 @@ _PREFIX_TO_SCHEDULER = {"SBATCH": "slurm", "PBS": "pbs"}
 # Flags that are valid but are not the "canonical" flag stored in the
 # Directives field metadata (short forms, alternative spellings).
 _SLURM_ALIASES = {
-    "-A": "account",
     "-a": "array",
     "-c": "cpus_per_task",
     "-e": "error_file",
     "-J": "job_name",
     "-n": "task_count",
     "-o": "log_file",
-    "-p": "partition",
-    "-q": "qos",
     "-t": "wall_time",
 }
 _PBS_ALIASES = {

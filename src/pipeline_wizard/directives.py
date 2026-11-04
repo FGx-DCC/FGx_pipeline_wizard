@@ -167,10 +167,6 @@ class Directives:
 
     """
 
-    account: str | None = field(
-        default=None,
-        metadata={"slurm": "--account", "pbs": "-A"},
-    )
     array: str | None = field(
         default=None,
         metadata={"slurm": "--array", "pbs": "-J"},
@@ -211,14 +207,6 @@ class Directives:
             "slurm": "--mem",
             "pbs": SKIP_DIRECTIVE,  # handled separately
         },
-    )
-    partition: str | None = field(
-        default=None,
-        metadata={"slurm": "--partition", "pbs": "-q"},
-    )
-    qos: str | None = field(
-        default=None,
-        metadata={"slurm": "--qos", "pbs": SKIP_DIRECTIVE},  # pbs has no 'qos'
     )
     task_count: str | None = field(
         default=None,
