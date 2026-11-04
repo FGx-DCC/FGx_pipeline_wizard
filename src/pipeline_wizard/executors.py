@@ -11,6 +11,14 @@ from pipeline_wizard.types import AbsolutePath
 class Executor(metaclass=ABCMeta):
     """A job executor, like slurm or pbs."""
 
+    @override
+    def __eq__(self, other: object) -> bool:
+        """Return True if other is an Executor with the same name."""
+        if not isinstance(other, Executor):
+            return False
+
+        return self.executor_name() == other.executor_name()
+
     @abstractmethod
     def executor_name(self) -> str:
         """Return the name of the executor."""
