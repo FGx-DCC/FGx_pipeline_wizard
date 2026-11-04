@@ -287,7 +287,10 @@ class Dag:
                 # fault. It is more likely that the pipeline file was written
                 # poorly and so a warning helps the user with raising an issue.
                 tell(
-                    f"WARNING: {full_script_path} does not exist!",
+                    f"""
+                    WARNING: {full_script_path} does not exist!
+                    (please contact pipeline author)
+                    """,
                     ANSIColors.YELLOW,
                 )
 
