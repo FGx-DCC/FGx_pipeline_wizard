@@ -415,10 +415,6 @@ def test_invalid_pbs_wall_time_raises(tmp_path: Path, text: str) -> None:
         _read(tmp_path, f"#PBS -l walltime={text}\n")
 
 
-@pytest.mark.xfail(
-    reason="ncpus in a PBS select is the total, but is read as cpus_per_task",
-    strict=True,
-)
 def test_pbs_select_round_trips_cpus_per_task(tmp_path: Path) -> None:
     """Should read cpus per task from ompthreads in a PBS select.
 

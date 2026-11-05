@@ -240,8 +240,16 @@ def _parse_pbs_resources(
             count, *chunks = value.split(":")
             nodes = int(count) if count.isdigit() else 1
             attrs = dict(c.split("=", 1) for c in chunks if "=" in c)
-            if "ncpus" in attrs or "ppn" in attrs:
-                yield "cpus_per_task", attrs.get("ncpus", attrs.get("ppn"))
+            ncpus = attrs.get("ncpus", attrs.get("ppn"))
+            mpiprocs = attrs.get("mpiprocs")
+
+            if "ompthreads" in attrs:
+                yield "cpus_per_task", attrs["ompthreads"]
+            elif ncpus and mpiprocs and int(mpiprocs) > 0:
+                yield "cpus_per_task", str(max(1, int(ncpus) // int(mpiprocs)))
+            elif ncpus:
+                yield "cpus_per_task", ncpus
+
             if "mem" in attrs:
                 yield "memory", _parse_pbs_memory(attrs["mem"])
             if "mpiprocs" in attrs:
