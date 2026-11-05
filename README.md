@@ -202,3 +202,6 @@ after = ["write"]
 - If your script uses `--nodes`, size_string specifications are not allowed and
   the maximum number of nodes will be picked (So `--nodes=1-5` will be
   interpretted as `--nodes=5`)
+- If a script in a pipeline uses an array (`--array`/`-J`), please make sure
+  your users know that local executors cannot be used. Otherwise, rewrite your
+  script so it uses something like GNU `parallel` instead.
