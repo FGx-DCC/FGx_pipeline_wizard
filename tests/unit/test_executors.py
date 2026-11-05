@@ -347,10 +347,6 @@ def test_available_executors(
     assert get_available_system_executors() == expected
 
 
-@pytest.mark.xfail(
-    reason="An empty variable list produces a bare -v flag which qsub rejects",
-    strict=True,
-)
 def test_pbs_submit_copy_nothing_has_no_bare_v_flag() -> None:
     """Should not emit a value-less -v flag.
 
@@ -359,7 +355,7 @@ def test_pbs_submit_copy_nothing_has_no_bare_v_flag() -> None:
     When:
         The PBS submit text is requested.
     Then:
-        Either no -v flag is present or it has a value.
+        No -v flag is present.
 
     """
     text = PBSExecutor().submit_text(
@@ -367,4 +363,4 @@ def test_pbs_submit_copy_nothing_has_no_bare_v_flag() -> None:
     )
     options = text.removeprefix("j=$(qsub ").removesuffix(f" {SCRIPT})")
 
-    assert options.strip() not in {"-v"}
+    assert "-v" not in options.strip()

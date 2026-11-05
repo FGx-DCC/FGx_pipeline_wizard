@@ -131,6 +131,10 @@ class PBSExecutor(Executor):
         for directive, value in directives.as_pbs().items():
             if value is None:
                 continue
+            # Edge case where script copies specific environvironment variables
+            # but there are no variables to copy
+            if directive == "-v" and value == "":
+                continue
             options.append(
                 directive
                 if value == ""
