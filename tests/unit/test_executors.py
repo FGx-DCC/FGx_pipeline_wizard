@@ -297,14 +297,14 @@ def test_local_submit_runs_script_directly() -> None:
     When:
         The local submit text is requested.
     Then:
-        The text is the script path.
+        The text is the script path which is double quoted.
 
     """
     executor = LocalExecutor()
 
-    assert executor.submit_text(SCRIPT, "j", None, None) == str(SCRIPT)
-    assert executor.submit_text(SCRIPT, "j", Directives(), ["a"]) == str(
-        SCRIPT
+    assert executor.submit_text(SCRIPT, "j", None, None) == f'"{SCRIPT}"'
+    assert (
+        executor.submit_text(SCRIPT, "j", Directives(), ["a"]) == f'"{SCRIPT}"'
     )
 
 
