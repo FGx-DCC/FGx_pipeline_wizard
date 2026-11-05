@@ -114,7 +114,7 @@ class SlurmExecutor(Executor):
         if directives is None:
             raise ValueError("Directives required for slurm scripts")
 
-        sbatch_arguments = ["--parsable"]
+        sbatch_arguments = ["--parsable --export=ALL"]
         if dependent_jobs:
             sbatch_arguments.append(
                 "--dependency=afterok:" + ":".join(dependent_jobs)
@@ -183,7 +183,7 @@ class PBSExecutor(Executor):
         if directives is None:
             raise ValueError("Directives required for pbs scripts")
 
-        qsub_arguments = []
+        qsub_arguments = ["-V"]
         if dependent_jobs:
             qsub_arguments.append(
                 "-W depend=afterok:" + ":".join(dependent_jobs)

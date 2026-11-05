@@ -5,7 +5,6 @@ import re
 import pytest
 
 from pipeline_wizard.directives import (
-    CopyEnvironment,
     Directives,
     EventNotification,
     Memory,
@@ -76,7 +75,8 @@ def test_slurm_submit_basic() -> None:
     When:
         The slurm submit text is requested.
     Then:
-        It assigns the job id to the variable using sbatch --parsable.
+        It assigns the job id to the variable using sbatch --parsable,
+        --export=ALL is always added.
 
     """
     text = _flat(
@@ -85,6 +85,7 @@ def test_slurm_submit_basic() -> None:
 
     assert text.startswith("jobid_1_1=$( sbatch --parsable ")
     assert str(SCRIPT) in text
+    assert "--export=ALL" in text
     assert "--dependency" not in text
 
 
@@ -105,7 +106,6 @@ def test_slurm_submit_with_dependencies_and_directives() -> None:
         memory=Memory.parse("8G"),
         wall_time=WallTime(hours=2),
         event_notification=EventNotification.END,
-        copy_environment=CopyEnvironment.ALL,
     )
 
     text = SlurmExecutor().submit_text(
@@ -197,7 +197,8 @@ def test_pbs_submit_basic() -> None:
     When:
         The PBS submit text is requested.
     Then:
-        It assigns the qsub output to the variable.
+        It assigns the qsub output to the variable,
+        -V flag is always added
 
     """
     text = _flat(
@@ -206,6 +207,7 @@ def test_pbs_submit_basic() -> None:
 
     assert text.startswith("jobid=$( qsub")
     assert text.endswith(f"{SCRIPT} )")
+    assert "-V" in text
     assert "depend" not in text
 
 
@@ -224,7 +226,6 @@ def test_pbs_submit_with_dependencies_and_directives() -> None:
         job_name="job",
         wall_time=WallTime(hours=2),
         event_notification=EventNotification.BEGIN,
-        copy_environment=CopyEnvironment.ALL,
     )
 
     text = _flat(PBSExecutor().submit_text(SCRIPT, "j", directives, ["${a}"]))
@@ -234,27 +235,6 @@ def test_pbs_submit_with_dependencies_and_directives() -> None:
     assert "-m b" in text
     assert " -V" in text
     assert "-l walltime=2:0:0" in text
-
-
-def test_pbs_submit_named_environment_variables() -> None:
-    """Should pass named environment variables with -v.
-
-    Given:
-        Directives copying two named variables.
-    When:
-        The PBS submit text is requested.
-    Then:
-        The submit line contains `-v A,B`.
-
-    """
-    text = PBSExecutor().submit_text(
-        SCRIPT,
-        "j",
-        Directives(copy_environment=CopyEnvironment(("A", "B"))),
-        None,
-    )
-
-    assert "-v A,B" in text
 
 
 @pytest.mark.parametrize(
@@ -361,22 +341,3 @@ def test_available_executors(
     )
 
     assert get_available_system_executors() == expected
-
-
-def test_pbs_submit_copy_nothing_has_no_bare_v_flag() -> None:
-    """Should not emit a value-less -v flag.
-
-    Given:
-        Directives that copy no environment variables.
-    When:
-        The PBS submit text is requested.
-    Then:
-        No -v flag is present.
-
-    """
-    text = PBSExecutor().submit_text(
-        SCRIPT, "j", Directives(copy_environment=CopyEnvironment(())), None
-    )
-    options = text.removeprefix("j=$(qsub ").removesuffix(f" {SCRIPT})")
-
-    assert "-v" not in options.strip()

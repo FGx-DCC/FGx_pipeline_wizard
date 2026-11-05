@@ -6,7 +6,6 @@ import pytest
 
 from pipeline_wizard.directive_parser import read_directives
 from pipeline_wizard.directives import (
-    CopyEnvironment,
     EventNotification,
     Memory,
     WallTime,
@@ -218,33 +217,6 @@ def test_slurm_mail_types_merge_across_lines(tmp_path: Path) -> None:
     )
 
 
-@pytest.mark.parametrize(
-    ("text", "expected"),
-    [
-        ("ALL", CopyEnvironment.ALL),
-        ("ALL,FOO=bar", CopyEnvironment(("ALL", "FOO=bar"))),
-        ("NONE", CopyEnvironment(())),
-        ("A,B", CopyEnvironment(("A", "B"))),
-    ],
-)
-def test_reads_slurm_export(
-    tmp_path: Path, text: str, expected: CopyEnvironment
-) -> None:
-    """Should map --export to CopyEnvironment.
-
-    Given:
-        A script with an --export value.
-    When:
-        Its directives are read.
-    Then:
-        The copy_environment matches.
-
-    """
-    directives = _read(tmp_path, f"#SBATCH --export={text}\n")
-
-    assert directives.copy_environment == expected
-
-
 def test_later_lines_override_earlier(tmp_path: Path) -> None:
     """Should use the last value given for a directive.
 
@@ -380,23 +352,6 @@ def test_reads_pbs_select(tmp_path: Path) -> None:
 
     assert directives.memory == Memory.parse("8G")
     assert directives.task_count == "2"
-
-
-def test_reads_pbs_environment(tmp_path: Path) -> None:
-    """Should read PBS environment options.
-
-    Given:
-        A script with `-V` or `-v A,B`.
-    When:
-        Its directives are read.
-    Then:
-        -V copies everything and -v copies the named variables.
-
-    """
-    assert _read(tmp_path, "#PBS -V\n").copy_environment == CopyEnvironment.ALL
-    assert _read(tmp_path, "#PBS -v A,B\n").copy_environment == (
-        CopyEnvironment(("A", "B"))
-    )
 
 
 @pytest.mark.parametrize("text", ["1-10:10:10", "1:2:3:4"])

@@ -7,7 +7,7 @@ import re
 from dataclasses import dataclass, field, fields
 from datetime import timedelta
 from enum import Flag, auto
-from typing import ClassVar, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 
 @runtime_checkable
@@ -80,38 +80,6 @@ class EventNotification(Flag):
 
 
 @dataclass(frozen=True)
-class CopyEnvironment:
-    """Which environment variables to copy into the job.
-
-    `variables=None` is the sentinel for "everything" use
-    `CopyEnvironment.ALL`. An empty tuple means copy nothing.
-
-    """
-
-    variables: tuple[str, ...] | None = None
-
-    ALL: ClassVar[CopyEnvironment]
-
-    def as_slurm(self) -> str:
-        """Return as a slurm --export value."""
-        if self.variables is None:
-            return "ALL"
-        return ",".join(self.variables) or "NONE"
-
-    @property
-    def pbs_flag(self) -> str:
-        """PBS uses a (-V) for all vs. specific (-v) variables."""
-        return "-V" if self.variables is None else "-v"
-
-    def as_pbs(self) -> str:
-        """Return as a PBS value ("" means a bare -V flag)."""
-        return "" if self.variables is None else ",".join(self.variables)
-
-
-CopyEnvironment.ALL = CopyEnvironment()
-
-
-@dataclass(frozen=True)
 class Memory:
     """A scheduler agnostic amount of memory, stored in bytes."""
 
@@ -180,10 +148,6 @@ class Directives:
     array: str | None = field(
         default=None,
         metadata={"slurm": "--array", "pbs": "-J"},
-    )
-    copy_environment: CopyEnvironment | None = field(
-        default=None,
-        metadata={"slurm": "--export", "pbs": "-V"},
     )
     cpus_per_task: str | None = field(
         default=None,
@@ -257,7 +221,5 @@ class Directives:
                 continue
             value = getattr(self, f.name)
             key = f.metadata["pbs"]
-            if isinstance(value, CopyEnvironment):
-                key = value.pbs_flag
             result[key] = self._render(value, "pbs")
         return result

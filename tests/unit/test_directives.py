@@ -5,7 +5,6 @@ from datetime import timedelta
 import pytest
 
 from pipeline_wizard.directives import (
-    CopyEnvironment,
     Directives,
     EventNotification,
     Memory,
@@ -76,54 +75,6 @@ def test_event_notification_formats(
     """
     assert event.as_slurm() == slurm
     assert event.as_pbs() == pbs
-
-
-def test_copy_environment_all() -> None:
-    """Should copy the whole environment with the ALL sentinel.
-
-    Given:
-        CopyEnvironment.ALL.
-    When:
-        It is converted for slurm and PBS.
-    Then:
-        Slurm exports ALL and PBS uses a bare -V flag.
-
-    """
-    assert CopyEnvironment.ALL.as_slurm() == "ALL"
-    assert CopyEnvironment.ALL.pbs_flag == "-V"
-    assert CopyEnvironment.ALL.as_pbs() == ""
-
-
-def test_copy_environment_named_variables() -> None:
-    """Should copy only the named variables.
-
-    Given:
-        A CopyEnvironment naming two variables.
-    When:
-        It is converted for slurm and PBS.
-    Then:
-        Both schedulers get a comma separated list (PBS with -v).
-
-    """
-    env = CopyEnvironment(("A", "B"))
-
-    assert env.as_slurm() == "A,B"
-    assert env.pbs_flag == "-v"
-    assert env.as_pbs() == "A,B"
-
-
-def test_copy_environment_nothing_for_slurm() -> None:
-    """Should export nothing when given no variables.
-
-    Given:
-        A CopyEnvironment with an empty tuple.
-    When:
-        It is converted for slurm.
-    Then:
-        The value is NONE.
-
-    """
-    assert CopyEnvironment(()).as_slurm() == "NONE"
 
 
 @pytest.mark.parametrize(
@@ -248,7 +199,6 @@ def test_directives_slurm_translation() -> None:
         memory=Memory.parse("8G"),
         wall_time=WallTime(hours=1),
         event_notification=EventNotification.ALL,
-        copy_environment=CopyEnvironment.ALL,
     )
 
     result = directives.as_slurm()
@@ -278,7 +228,6 @@ def test_directives_pbs_translation() -> None:
         cpus_per_task="4",
         memory=Memory.parse("8G"),
         event_notification=EventNotification.BEGIN,
-        copy_environment=CopyEnvironment(("A",)),
     )
 
     result = directives.as_pbs()
@@ -288,19 +237,3 @@ def test_directives_pbs_translation() -> None:
     assert result["-v"] == "A"
     assert "--cpus-per-task" not in result
     assert "--mem" not in result
-
-
-def test_directives_pbs_copy_all_uses_bare_flag() -> None:
-    """Should use a bare -V for PBS when copying the whole environment.
-
-    Given:
-        A Directives that copies all of the environment.
-    When:
-        It is converted for PBS.
-    Then:
-        The flag is -V with an empty value.
-
-    """
-    result = Directives(copy_environment=CopyEnvironment.ALL).as_pbs()
-
-    assert result["-V"] == ""

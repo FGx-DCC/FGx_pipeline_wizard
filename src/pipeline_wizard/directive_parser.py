@@ -9,7 +9,6 @@ from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import fields
 
 from pipeline_wizard.directives import (
-    CopyEnvironment,
     Directives,
     EventNotification,
     Memory,
@@ -159,28 +158,12 @@ def _split_names(text: str) -> tuple[str, ...]:
     return tuple(n for n in (s.strip() for s in text.split(",")) if n)
 
 
-def _parse_slurm_env(text: str) -> CopyEnvironment:
-    names = _split_names(text)
-    upper = [n.upper() for n in names]
-    if len(upper) == 1 and upper[0] == "ALL":
-        return CopyEnvironment.ALL
-    if not names or upper in (["NONE"], ["NIL"]):
-        return CopyEnvironment(())
-    return CopyEnvironment(names)
-
-
-def _parse_pbs_env(text: str) -> CopyEnvironment:
-    return CopyEnvironment(_split_names(text))
-
-
 _SLURM_PARSERS: dict[str, Callable[[str], object]] = {
-    "copy_environment": _parse_slurm_env,
     "event_notification": _parse_slurm_events,
     "memory": Memory.parse,
     "wall_time": _parse_slurm_walltime,
 }
 _PBS_PARSERS: dict[str, Callable[[str], object]] = {
-    "copy_environment": _parse_pbs_env,
     "event_notification": _parse_pbs_events,
     "memory": _parse_pbs_memory,
     "wall_time": _parse_pbs_walltime,
@@ -265,9 +248,6 @@ def _translate(scheduler: str, options: str) -> Iterator[tuple[str, object]]:
     bare = _PBS_BARE_FLAGS if scheduler == "pbs" else frozenset()
 
     for flag, raw in _iterate_options(options, bare):
-        if scheduler == "pbs" and flag == "-V":
-            yield "copy_environment", CopyEnvironment.ALL
-            continue
         if scheduler == "pbs" and flag == "-l":
             if raw is None:
                 raise ValueError("-l is missing a value")
