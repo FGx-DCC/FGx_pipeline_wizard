@@ -70,12 +70,19 @@ class Executor(metaclass=ABCMeta):
                 argument \
             )
 
+        Note:
+            Absolute paths are quoted. This does mean however that if there
+            are any paths present in options or are not absolute paths, they
+            will not be quoted.
+
         """
         command_components = [f"{variable}=$(\\\n"]
         for idx, command in enumerate(commands, 1):
             formatted_command = f"\t{command} \\\n"
             formatted_arguments = [
-                f"\t{argument} \\\n"
+                f'\t"{argument}" \\\n'  # Add quotes around absolute paths
+                if argument.startswith("/")
+                else f"\t{argument} \\\n"
                 for argument in command_arguments.get(command, "")
             ]
             command_components.append(
@@ -153,7 +160,7 @@ class LocalExecutor(Executor):
         background and use 'wait' (though this is a little fragile).
 
         """
-        return str(script)
+        return shlex.quote(str(script))
 
 
 class PBSExecutor(Executor):
