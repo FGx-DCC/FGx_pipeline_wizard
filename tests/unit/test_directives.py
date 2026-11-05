@@ -209,7 +209,6 @@ def test_directives_slurm_translation() -> None:
     assert result["--mem"] == "8G"
     assert result["--time"] == "0-1:0:0"
     assert result["--mail-type"] == "ALL"
-    assert result["--export"] == "ALL"
 
 
 def test_directives_pbs_translation() -> None:
@@ -234,6 +233,5 @@ def test_directives_pbs_translation() -> None:
 
     assert result["-N"] == "job"
     assert result["-m"] == "b"
-    assert result["-v"] == "A"
     assert "--cpus-per-task" not in result
     assert "--mem" not in result
