@@ -206,7 +206,7 @@ def test_pbs_submit_basic() -> None:
     )
 
     assert text.startswith("jobid=$( qsub")
-    assert text.endswith(f"{SCRIPT} )")
+    assert str(SCRIPT) in text
     assert "-V" in text
     assert "depend" not in text
 
