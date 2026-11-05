@@ -162,7 +162,7 @@ class LocalExecutor(Executor):
         background and use 'wait' (though this is a little fragile).
 
         """
-        return shlex.quote(str(script))
+        return f'"{script}"'
 
 
 class PBSExecutor(Executor):
