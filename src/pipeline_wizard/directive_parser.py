@@ -223,7 +223,7 @@ def _iterate_options(
         yield flag, inline
 
 
-def _parse_pbs_resources(
+def _parse_pbs_resources(  # noqa: C901
     text: str, table: FlagLookupTable
 ) -> Iterator[tuple[str, object]]:
     """Translate the value of a PBS `-l` option (comma separated resources)."""
