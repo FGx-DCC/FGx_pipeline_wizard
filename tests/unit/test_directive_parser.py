@@ -222,7 +222,7 @@ def test_slurm_mail_types_merge_across_lines(tmp_path: Path) -> None:
     ("text", "expected"),
     [
         ("ALL", CopyEnvironment.ALL),
-        ("ALL,FOO=bar", CopyEnvironment.ALL),
+        ("ALL,FOO=bar", CopyEnvironment(("ALL", "FOO=bar"))),
         ("NONE", CopyEnvironment(())),
         ("A,B", CopyEnvironment(("A", "B"))),
     ],

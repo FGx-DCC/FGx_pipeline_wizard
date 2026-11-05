@@ -162,7 +162,7 @@ def _split_names(text: str) -> tuple[str, ...]:
 def _parse_slurm_env(text: str) -> CopyEnvironment:
     names = _split_names(text)
     upper = [n.upper() for n in names]
-    if "ALL" in upper:  # `ALL,FOO=bar` extras cannot be represented
+    if len(upper) == 1 and upper[0] == "ALL":
         return CopyEnvironment.ALL
     if not names or upper in (["NONE"], ["NIL"]):
         return CopyEnvironment(())
