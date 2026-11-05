@@ -236,6 +236,8 @@ def _parse_pbs_resources(  # noqa: C901
             yield "memory", _parse_pbs_memory(value)
         elif key == "ncpus":
             yield "cpus_per_task", value
+        elif key == "walltime":
+            yield "wall_time", _parse_pbs_walltime(value)
         elif key in ("select", "nodes"):
             count, *chunks = value.split(":")
             nodes = int(count) if count.isdigit() else 1

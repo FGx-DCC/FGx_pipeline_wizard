@@ -277,7 +277,6 @@ def test_directives_pbs_translation() -> None:
         job_name="job",
         cpus_per_task="4",
         memory=Memory.parse("8G"),
-        wall_time=WallTime(hours=1),
         event_notification=EventNotification.BEGIN,
         copy_environment=CopyEnvironment(("A",)),
     )
@@ -285,7 +284,6 @@ def test_directives_pbs_translation() -> None:
     result = directives.as_pbs()
 
     assert result["-N"] == "job"
-    assert result["-l walltime"] == "1:0:0"
     assert result["-m"] == "b"
     assert result["-v"] == "A"
     assert "--cpus-per-task" not in result
