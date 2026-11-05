@@ -86,6 +86,7 @@ def test_reads_short_slurm_options(tmp_path: Path) -> None:
         tmp_path,
         "#SBATCH -J job -c 2\n"
         "#SBATCH -n3\n"
+        "#SBATCH -N 5\n"
         "#SBATCH -t 10\n"
         "#SBATCH -o o.log -e e.log\n"
         "#SBATCH -a 1-4\n",
@@ -93,6 +94,7 @@ def test_reads_short_slurm_options(tmp_path: Path) -> None:
 
     assert directives.job_name == "job"
     assert directives.cpus_per_task == "2"
+    assert directives.nodes == "5"
     assert directives.task_count == "3"
     assert directives.wall_time == WallTime(minutes=10)
     assert directives.log_file == "o.log"
@@ -217,6 +219,54 @@ def test_slurm_mail_types_merge_across_lines(tmp_path: Path) -> None:
         directives.event_notification
         == EventNotification.BEGIN | EventNotification.END
     )
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("#SBATCH --nodes=2", "2"),
+        ("#SBATCH --nodes=2-4", "4"),
+    ],
+)
+def test_slurm_nodes_takes_maximum(
+    tmp_path: Path, text: str, expected: str
+) -> None:
+    """Should take the max nodes all the time.
+
+    Given:
+        #SBATCH --nodes=x[-y]
+    When:
+        Its directives are read.
+    Then:
+        The max value is chosen.
+
+    """
+    directives = _read(tmp_path, text)
+    assert directives.nodes == expected
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "#SBATCH --nodes=2,3,4",
+        "#SBATCH --nodes=2-15:4",
+    ],
+)
+def test_slurm_wont_accept_size_string_for_nodes(
+    tmp_path: Path, text: str
+) -> None:
+    """Should take the max nodes all the time.
+
+    Given:
+        #SBATCH --nodes=<size_string>
+    When:
+        Its directives are read.
+    Then:
+        The max value is chosen.
+
+    """
+    with pytest.raises(ValueError):
+        _read(tmp_path, text)
 
 
 def test_later_lines_override_earlier(tmp_path: Path) -> None:
