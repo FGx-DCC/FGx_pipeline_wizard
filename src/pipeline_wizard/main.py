@@ -6,17 +6,19 @@ from pathlib import Path
 
 from pipeline_wizard.cli_parser import PipelineWizardArgs
 from pipeline_wizard.config_builder import ConfigBuilder
-from pipeline_wizard.dag import Dag, Parameter, Requirement
+from pipeline_wizard.dag import Dag
 from pipeline_wizard.exceptions import (
     NotADagError,
     NotUpperError,
     PipelineParseError,
 )
+from pipeline_wizard.executors import get_available_system_executors
 from pipeline_wizard.prompts import (
     prompt_for_parameter_value,
     prompt_for_requirement_path,
 )
 from pipeline_wizard.run_builder import RunBuilder
+from pipeline_wizard.script import Parameter, Requirement
 from pipeline_wizard.wizard import (
     ANSIColors,
     ask,
@@ -78,6 +80,32 @@ def run(  # noqa: C901
         pipeline_to_preview.print_diagram()
         if ask_bool("Would you like to use this pipeline?"):
             chosen_pipeline = pipeline_to_preview
+
+    # \\
+    # Get job executor
+    # //
+    available_executors = get_available_system_executors()
+    if chosen_pipeline.executor is None:
+        if len(available_executors) == 1:
+            executor = available_executors[0]
+        else:
+            executor = available_executors[
+                ask(
+                    "Choose an executor to use for the pipeline",
+                    choices=[
+                        executor.executor_name()
+                        for executor in available_executors
+                    ],
+                )
+            ]
+        chosen_pipeline.executor = executor
+    elif chosen_pipeline.executor not in available_executors:
+        exit_with_message(
+            f"""
+            {chosen_pipeline.executor.executor_name()} was not found on your
+            system and this pipeline requires it.
+            """
+        )
 
     # \\
     # Alter pipeline to their needs

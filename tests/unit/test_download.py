@@ -7,6 +7,7 @@ from typing import Self
 import pytest
 
 from pipeline_wizard.download import download_file
+from pipeline_wizard.types import AbsolutePath
 
 
 class _FakeResponse(BytesIO):
@@ -43,7 +44,7 @@ def test_downloads_supported_schemes(
         The destination is returned and holds the downloaded bytes.
 
     """
-    destination = tmp_path / "out.bin"
+    destination = AbsolutePath(tmp_path / "out.bin")
 
     result = download_file(url, destination, "default.bin")
 
@@ -65,7 +66,7 @@ def test_directory_destination_uses_default_name(
         The file is saved in it with the default file name.
 
     """
-    result = download_file("https://x.org/f", tmp_path, "ref.fa")
+    result = download_file("https://x.org/f", AbsolutePath(tmp_path), "ref.fa")
 
     assert result == tmp_path / "ref.fa"
     assert result.read_bytes() == b"contents"
@@ -86,6 +87,6 @@ def test_rejects_unsupported_schemes(
 
     """
     with pytest.raises(ValueError, match="Unsupported scheme"):
-        download_file(url, tmp_path / "out", "default")
+        download_file(url, AbsolutePath(tmp_path / "out"), "default")
 
     assert fake_urlopen == []

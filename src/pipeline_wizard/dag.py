@@ -3,87 +3,27 @@
 from __future__ import annotations
 
 import tomllib
-from dataclasses import dataclass, field, replace
+from dataclasses import replace
 from functools import cached_property
 from graphlib import CycleError, TopologicalSorter
 from pathlib import Path
 
+from pipeline_wizard.directive_parser import read_directives
+from pipeline_wizard.directives import Directives
 from pipeline_wizard.exceptions import (
     NotADagError,
     NotUpperError,
     PipelineParseError,
 )
+from pipeline_wizard.executors import (
+    Executor,
+    LocalExecutor,
+    PBSExecutor,
+    SlurmExecutor,
+)
+from pipeline_wizard.script import Parameter, Requirement, Script
 from pipeline_wizard.types import AbsolutePath
 from pipeline_wizard.wizard import ANSIColors, tell
-
-
-@dataclass
-class Parameter:
-    """Represents a configuration parameter (such as a file path)."""
-
-    name: str
-    """The name of the parameter (to put into the config file).
-
-    This must be capitalised.
-
-    """
-
-    default: str | int | bool | list[str] | list[int]
-    """The default value used for the parameter."""
-
-    def __post_init__(self) -> None:
-        """Raise if name is not upper case."""
-        if self.name != self.name.upper():
-            raise NotUpperError(self.name)
-
-
-@dataclass
-class Requirement:
-    """Represents an external requirement for the pipeline (a reference)."""
-
-    name: str
-    """The name of the requirement (to put into the config file).
-
-    This must be capitalised.
-
-    """
-
-    instructions: str
-    """Instructions or a URL on how to get said requirement.
-
-    If this is a valid URL and the user doesn't have the file, the file will
-    be retrieved via said URL.
-
-    """
-
-    def __post_init__(self) -> None:
-        """Raise if name is not upper case."""
-        if self.name != self.name.upper():
-            raise NotUpperError(self.name)
-
-
-@dataclass
-class Script:
-    """Represents a script with associated information."""
-
-    name: str
-    """Name of script."""
-
-    path: Path
-    """Absolute path to the script."""
-
-    description: str
-    """What the script attempts to do."""
-
-    dependencies: list[Script] = field(default_factory=list)
-    """Scripts required to be completed for this to run."""
-
-    parameters: dict[str, Parameter] = field(default_factory=dict)
-    """Configuration parameters needed."""
-
-    requires: dict[str, Requirement] = field(default_factory=dict)
-    """File dependencies (for example, a reference genome)."""
-
 
 Step = tuple[Script, ...]
 
@@ -99,6 +39,7 @@ class Dag:
         scripts: dict[str, Script],
         script_dependencies: dict[str, set[str]],
         global_parameters: dict[str, Parameter],
+        executor: Executor | None,
     ) -> None:
         """Initialise the instance."""
         self.name = name
@@ -107,6 +48,7 @@ class Dag:
         self._scripts = scripts
         self._script_dependencies = script_dependencies
         self.global_parameters = global_parameters
+        self.executor = executor
 
     def title(self) -> str:
         """Return title of the pipeline."""
@@ -242,6 +184,7 @@ class Dag:
                 if node not in removed
             },
             global_parameters=self.global_parameters,
+            executor=self.executor,
         )
 
     @property
@@ -273,6 +216,20 @@ class Dag:
         # dependencies for steps dependent on the dag as a whole)
         aliases: dict[str, set[str]] = {}
 
+        match dag_executor := dag_data.get("executor"):
+            case "slurm":
+                executor = SlurmExecutor()
+            case "pbs":
+                executor = PBSExecutor()
+            case "local":
+                executor = LocalExecutor()
+            case None:
+                executor = None
+            case _:
+                raise PipelineParseError(
+                    f"'{dag_executor}' is not a valid executor", dag_path
+                )
+
         try:
             global_parameters = {
                 name: Parameter(name, default)
@@ -298,6 +255,15 @@ class Dag:
                     script_directory,
                     pipeline_directory,
                 )
+                if sub_dag.executor != executor and (
+                    sub_dag.executor is not None and executor is not None
+                ):
+                    raise PipelineParseError(
+                        f"A sub dag ({sub_dag.file_path}) had a conflicting "
+                        "hard coded executor",
+                        dag_path,
+                    )
+
                 # Append a prefix to help prevent naming collisions
                 prefix = f"{name}_"
                 depended_on = {
@@ -344,11 +310,18 @@ class Dag:
                 # fault. It is more likely that the pipeline file was written
                 # poorly and so a warning helps the user with raising an issue.
                 tell(
-                    f"WARNING: {full_script_path} does not exist!",
+                    f"""
+                    WARNING: {full_script_path} does not exist!
+                    (please contact pipeline author)
+                    """,
                     ANSIColors.YELLOW,
                 )
 
             try:
+                if full_script_path.exists():
+                    directives = read_directives(full_script_path)
+                else:
+                    directives = Directives()
                 scripts[name] = Script(
                     name=name,
                     path=full_script_path,
@@ -365,8 +338,9 @@ class Dag:
                             "parameters", {}
                         ).items()
                     },
+                    directives=directives,
                 )
-            except NotUpperError as exc:
+            except (NotUpperError, ValueError) as exc:
                 raise PipelineParseError(f"{exc}", dag_path) from exc
             script_dependencies[name] = after
 
@@ -398,4 +372,5 @@ class Dag:
             scripts=scripts,
             script_dependencies=script_dependencies,
             global_parameters=global_parameters,
+            executor=executor,
         )

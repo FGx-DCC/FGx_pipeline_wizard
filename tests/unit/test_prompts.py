@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from pipeline_wizard.dag import Parameter, Requirement
 from pipeline_wizard.prompts import (
     TODO,
     prompt_for_parameter_value,
     prompt_for_requirement_path,
 )
+from pipeline_wizard.script import Parameter, Requirement
 
 Feed = Callable[[Iterable[str]], None]
 

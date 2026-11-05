@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from pipeline_wizard.dag import Parameter, Requirement
 from pipeline_wizard.prompts import TODO
+from pipeline_wizard.script import Parameter, Requirement
 
 
 class ConfigBuilder:
