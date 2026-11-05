@@ -47,6 +47,45 @@ class Executor(metaclass=ABCMeta):
 
         """
 
+    def _construct_command(
+        self,
+        variable: str,
+        commands: list[str],
+        command_arguments: dict[str, list[str]],
+    ) -> str:
+        r"""Construct a command such that it takes up minimal width.
+
+        Returns:
+            var=$(\
+                command \
+                -option value \
+                -option=value \
+                --flag \
+                argument \
+                argument \
+                | \
+                command \
+                --option=value \
+                -flag \
+                argument \
+            )
+
+        """
+        command_components = [f"{variable}=$(\\\n"]
+        for idx, command in enumerate(commands, 1):
+            formatted_command = f"\t{command} \\\n"
+            formatted_arguments = [
+                f"\t{argument} \\\n"
+                for argument in command_arguments.get(command, "")
+            ]
+            command_components.append(
+                f"{formatted_command}{''.join(formatted_arguments)}"
+            )
+            if len(commands) > 1 and idx < len(commands):
+                command_components.append("\t| \\\n")
+
+        return "".join(command_components) + ")"
+
 
 class SlurmExecutor(Executor):
     """The slurm workload manager."""
@@ -68,15 +107,27 @@ class SlurmExecutor(Executor):
         if directives is None:
             raise ValueError("Directives required for slurm scripts")
 
-        options = ["--parsable"]
+        sbatch_arguments = ["--parsable"]
         if dependent_jobs:
-            options.append("--dependency=afterok:" + ":".join(dependent_jobs))
+            sbatch_arguments.append(
+                "--dependency=afterok:" + ":".join(dependent_jobs)
+            )
         for directive, value in directives.as_slurm().items():
             if value is None or value == "":
                 continue
-            options.append(f"{directive}={shlex.quote(value)}")
+            sbatch_arguments.append(f"{directive}={shlex.quote(value)}")
 
-        return f"{job_variable}=$(sbatch {' '.join(options)} {script} | cut -d';' -f1)"  # noqa: E501
+        sbatch_arguments.append(str(script))
+
+        # cut for cases where multiple clusters exist on system
+        commands = ["sbatch", "cut"]
+        command_arguments = {
+            "sbatch": sbatch_arguments,
+            "cut": ["-d';'", "-f1"],
+        }
+        return self._construct_command(
+            job_variable, commands, command_arguments
+        )
 
 
 class LocalExecutor(Executor):
@@ -125,9 +176,11 @@ class PBSExecutor(Executor):
         if directives is None:
             raise ValueError("Directives required for pbs scripts")
 
-        options = []
+        qsub_arguments = []
         if dependent_jobs:
-            options.append("-W depend=afterok:" + ":".join(dependent_jobs))
+            qsub_arguments.append(
+                "-W depend=afterok:" + ":".join(dependent_jobs)
+            )
         for directive, value in directives.as_pbs().items():
             if value is None:
                 continue
@@ -135,14 +188,19 @@ class PBSExecutor(Executor):
             # but there are no variables to copy
             if directive == "-v" and value == "":
                 continue
-            options.append(
+            qsub_arguments.append(
                 directive
                 if value == ""
                 else f"{directive} {shlex.quote(value)}"
             )
-        options.extend(self._resource_options(directives))
+        qsub_arguments.extend(self._resource_options(directives))
+        qsub_arguments.append(str(script))
 
-        return f"{job_variable}=$(qsub {' '.join(options)} {script})"
+        commands = ["qsub"]
+        command_arguments = {"qsub": qsub_arguments}
+        return self._construct_command(
+            job_variable, commands, command_arguments
+        )
 
     def _resource_options(self, directives: Directives) -> list[str]:
         """Return the -l resource options for qsub."""
