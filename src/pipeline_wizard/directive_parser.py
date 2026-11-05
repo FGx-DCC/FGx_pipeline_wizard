@@ -159,10 +159,17 @@ def _split_names(text: str) -> tuple[str, ...]:
     return tuple(n for n in (s.strip() for s in text.split(",")) if n)
 
 
+def _parse_slurm_nodes(text: str) -> str:
+    if "," in text or ":" in text:
+        raise ValueError("Size strings not accepted for --nodes")
+    return text.split("-")[-1]  # always pick max
+
+
 _SLURM_PARSERS: dict[str, Callable[[str], object]] = {
     "event_notification": _parse_slurm_events,
     "memory": Memory.parse,
     "wall_time": _parse_slurm_walltime,
+    "nodes": _parse_slurm_nodes,
 }
 _PBS_PARSERS: dict[str, Callable[[str], object]] = {
     "event_notification": _parse_pbs_events,

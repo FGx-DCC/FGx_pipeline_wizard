@@ -199,3 +199,6 @@ after = ["write"]
   TORQUE uses `-t`, not `-J`).
 - Although slurm accepts `--mem=0`, there is no PBS equivalent. As such an
   error is raised if this value is used for this directive
+- If your script uses `--nodes`, size_string specifications are not allowed and
+  the maximum number of nodes will be picked (So `--nodes=1-5` will be
+  interpretted as `--nodes=5`)
