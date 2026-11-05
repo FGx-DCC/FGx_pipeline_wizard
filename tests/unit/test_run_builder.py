@@ -7,6 +7,7 @@ import pytest
 
 from pipeline_wizard.dag import Dag
 from pipeline_wizard.run_builder import RunBuilder
+from pipeline_wizard.types import AbsolutePath
 
 PIPELINE = """
 name = "Demo"
@@ -26,7 +27,10 @@ after = ["a", "b"]
 
 def _build(dag: Dag, tmp_path: Path, *, skip_steps: int = 0) -> list[str]:
     builder = RunBuilder(
-        tmp_path, tmp_path / "config.sh", dag, starting_step=skip_steps + 1
+        AbsolutePath(tmp_path),
+        AbsolutePath(tmp_path) / "config.sh",
+        dag,
+        starting_step=skip_steps + 1,
     )
     for step in dag.steps[skip_steps:]:
         builder.add_pipeline_step(step)
@@ -87,7 +91,12 @@ def test_write_fails_for_unwritable_path(
         An OSError is raised.
 
     """
-    builder = RunBuilder(tmp_path, tmp_path / "c.sh", make_dag(PIPELINE), 0)
+    builder = RunBuilder(
+        AbsolutePath(tmp_path),
+        AbsolutePath(tmp_path) / "c.sh",
+        make_dag(PIPELINE),
+        0,
+    )
 
     with pytest.raises(OSError):  # noqa: PT011
         builder.write_run_script(tmp_path / "missing" / "run.sh")
