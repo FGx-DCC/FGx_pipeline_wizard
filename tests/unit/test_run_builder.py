@@ -1,5 +1,6 @@
 """Unit tests for the run script writer."""
 
+import re
 from collections.abc import Callable
 from pathlib import Path
 
@@ -36,7 +37,11 @@ def _build(dag: Dag, tmp_path: Path, *, skip_steps: int = 0) -> list[str]:
         builder.add_pipeline_step(step)
     out = tmp_path / "run.sh"
     builder.write_run_script(out)
-    return out.read_text().splitlines()
+    # Submit commands span several lines (shell continuations); put each on
+    # one line so tests don't depend on layout. This is still quite fragile
+    # and will break if there are any changes to how commands are written.
+    flattened = re.sub(r"\\\n\s*", "", out.read_text())
+    return [re.sub(r"[ \t]+", " ", line) for line in flattened.splitlines()]
 
 
 def test_first_step_has_no_dependency(

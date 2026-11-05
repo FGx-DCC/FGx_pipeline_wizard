@@ -1,5 +1,7 @@
 """Unit tests for the job executors."""
 
+import re
+
 import pytest
 
 from pipeline_wizard.directives import (
@@ -18,6 +20,16 @@ from pipeline_wizard.executors import (
 from pipeline_wizard.types import AbsolutePath
 
 SCRIPT = AbsolutePath("/scripts/a.sh")
+
+
+def _flat(command: str) -> str:
+    """Collapse shell line continuations so layout doesn't matter.
+
+    This is quite fragile and may break upon implementation changes (in how
+    lines are written).
+
+    """
+    return re.sub(r"\s+", " ", command.replace("\\\n", " ")).strip()
 
 
 def test_executor_names() -> None:
@@ -67,9 +79,11 @@ def test_slurm_submit_basic() -> None:
         It assigns the job id to the variable using sbatch --parsable.
 
     """
-    text = SlurmExecutor().submit_text(SCRIPT, "jobid_1_1", Directives(), None)
+    text = _flat(
+        SlurmExecutor().submit_text(SCRIPT, "jobid_1_1", Directives(), None)
+    )
 
-    assert text.startswith("jobid_1_1=$(sbatch --parsable ")
+    assert text.startswith("jobid_1_1=$( sbatch --parsable ")
     assert str(SCRIPT) in text
     assert "--dependency" not in text
 
@@ -186,10 +200,12 @@ def test_pbs_submit_basic() -> None:
         It assigns the qsub output to the variable.
 
     """
-    text = PBSExecutor().submit_text(SCRIPT, "jobid", Directives(), None)
+    text = _flat(
+        PBSExecutor().submit_text(SCRIPT, "jobid", Directives(), None)
+    )
 
-    assert text.startswith("jobid=$(qsub")
-    assert text.endswith(f"{SCRIPT})")
+    assert text.startswith("jobid=$( qsub")
+    assert text.endswith(f"{SCRIPT} )")
     assert "depend" not in text
 
 
@@ -211,7 +227,7 @@ def test_pbs_submit_with_dependencies_and_directives() -> None:
         copy_environment=CopyEnvironment.ALL,
     )
 
-    text = PBSExecutor().submit_text(SCRIPT, "j", directives, ["${a}"])
+    text = _flat(PBSExecutor().submit_text(SCRIPT, "j", directives, ["${a}"]))
 
     assert "-W depend=afterok:${a}" in text
     assert "-N job" in text
