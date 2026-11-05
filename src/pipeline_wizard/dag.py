@@ -216,6 +216,20 @@ class Dag:
         # dependencies for steps dependent on the dag as a whole)
         aliases: dict[str, set[str]] = {}
 
+        match dag_executor := dag_data.get("executor"):
+            case "slurm":
+                executor = SlurmExecutor()
+            case "pbs":
+                executor = PBSExecutor()
+            case "local":
+                executor = LocalExecutor()
+            case None:
+                executor = None
+            case _:
+                raise PipelineParseError(
+                    f"'{dag_executor}' is not a valid executor", dag_path
+                )
+
         try:
             global_parameters = {
                 name: Parameter(name, default)
@@ -241,6 +255,15 @@ class Dag:
                     script_directory,
                     pipeline_directory,
                 )
+                if sub_dag.executor != executor and (
+                    sub_dag.executor is not None and executor is not None
+                ):
+                    raise PipelineParseError(
+                        f"A sub dag ({sub_dag.file_path}) had a conflicting "
+                        "hard coded executor",
+                        dag_path,
+                    )
+
                 # Append a prefix to help prevent naming collisions
                 prefix = f"{name}_"
                 depended_on = {
@@ -341,20 +364,6 @@ class Dag:
             scripts[node].dependencies = [
                 scripts[dependency] for dependency in sorted(expanded)
             ]
-
-        match dag_executor := dag_data.get("executor"):
-            case "slurm":
-                executor = SlurmExecutor()
-            case "pbs":
-                executor = PBSExecutor()
-            case "local":
-                executor = LocalExecutor()
-            case None:
-                executor = None
-            case _:
-                raise PipelineParseError(
-                    f"'{dag_executor}' is not a valid executor", dag_path
-                )
 
         return cls(
             name=dag_data.get("name", "unnamed_pipeline"),

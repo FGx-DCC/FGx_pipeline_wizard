@@ -576,3 +576,30 @@ def test_unparseable_directives_raise_parse_error(
 
     with pytest.raises(PipelineParseError):
         make_dag('[steps.a]\npath = "a.sh"\n')
+
+
+def test_executor_mismatch_raises(make_dag: Callable[..., Dag]) -> None:
+    """A nested dag with a different hardcoded executor should raise.
+
+    Given:
+        Two dags, one using slurm, the other using pbs.
+    When:
+        The dags are read.
+    Then:
+        A PipelineParseError is raised.
+
+    """
+    nested = (
+        'executor="pbs"\n'
+        '[steps.x]\npath = "x.sh"\n'
+        '[steps.y]\npath = "y.sh"\n'
+        'after = ["x"]\n'
+    )
+    top = (
+        'executor="slurm"\n'
+        '[steps.rep]\ndag = "nested.toml"\n'
+        '[steps.z]\npath = "z.sh"\nafter = ["rep"]\n'
+    )
+
+    with pytest.raises(PipelineParseError):
+        make_dag(top, {"nested.toml": nested})
