@@ -114,6 +114,8 @@ class SlurmExecutor(Executor):
         if directives is None:
             raise ValueError("Directives required for slurm scripts")
 
+        # We always export all environment variables, as the pipeline scripts
+        # depend on exported values from the config file
         sbatch_arguments = ["--parsable --export=ALL"]
         if dependent_jobs:
             sbatch_arguments.append(
@@ -183,6 +185,8 @@ class PBSExecutor(Executor):
         if directives is None:
             raise ValueError("Directives required for pbs scripts")
 
+        # We always export all environment variables, as the pipeline scripts
+        # depend on exported values from the config file
         qsub_arguments = ["-V"]
         if dependent_jobs:
             qsub_arguments.append(
