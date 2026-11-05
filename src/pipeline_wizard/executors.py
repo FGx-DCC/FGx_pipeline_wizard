@@ -222,11 +222,13 @@ class PBSExecutor(Executor):
                 directives.cpus_per_task,
                 directives.task_count,
                 directives.memory,
+                directives.nodes,
             )
         ):
             cpus = int(directives.cpus_per_task or 1)
             tasks = int(directives.task_count or 1)
-            select = f"select=1:ncpus={cpus * tasks}:mpiprocs={tasks}"
+            nodes = int(directives.nodes or 1)
+            select = f"select={nodes}:ncpus={cpus * tasks}:mpiprocs={tasks}"
             if cpus > 1:
                 select += f":ompthreads={cpus}"
             if directives.memory:

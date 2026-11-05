@@ -51,6 +51,7 @@ def test_reads_long_slurm_options(tmp_path: Path) -> None:
         "#!/bin/bash\n"
         "#SBATCH --job-name=job\n"
         "#SBATCH --cpus-per-task 4\n"
+        "#SBATCH --nodes=4\n"
         "#SBATCH --ntasks=2\n"
         "#SBATCH --mem=8G\n"
         "#SBATCH --time=01:30:00\n"
@@ -61,6 +62,7 @@ def test_reads_long_slurm_options(tmp_path: Path) -> None:
 
     assert directives.job_name == "job"
     assert directives.cpus_per_task == "4"
+    assert directives.nodes == "4"
     assert directives.task_count == "2"
     assert directives.memory == Memory.parse("8G")
     assert directives.wall_time == WallTime(hours=1, minutes=30)
@@ -385,5 +387,25 @@ def test_pbs_select_round_trips_cpus_per_task(tmp_path: Path) -> None:
         tmp_path, "#PBS -l select=1:ncpus=8:mpiprocs=4:ompthreads=2\n"
     )
 
+    assert directives.cpus_per_task == "2"
+    assert directives.task_count == "4"
+
+
+def test_pbs_select_multiple_nodes(tmp_path: Path) -> None:
+    """Should read cpus per task from ompthreads in a PBS select.
+
+    Given:
+        `select=2:ncpus=8:mpiprocs=4:ompthreads=2` (4 tasks x 2 cpus).
+    When:
+        Its directives are read.
+    Then:
+        There are 2 cpus per task and 4 tasks.
+
+    """
+    directives = _read(
+        tmp_path, "#PBS -l select=2:ncpus=8:mpiprocs=4:ompthreads=2\n"
+    )
+
+    assert directives.nodes == "2"
     assert directives.cpus_per_task == "2"
     assert directives.task_count == "4"

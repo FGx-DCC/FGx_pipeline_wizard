@@ -33,6 +33,7 @@ _SLURM_ALIASES = {
     "-n": "task_count",
     "-o": "log_file",
     "-t": "wall_time",
+    "-N": "nodes",
 }
 _PBS_ALIASES = {
     "-v": "copy_environment",  # -V is canonical (all), -v is a named list
@@ -228,6 +229,8 @@ def _parse_pbs_resources(  # noqa: C901
             ncpus = attrs.get("ncpus", attrs.get("ppn"))
             mpiprocs = attrs.get("mpiprocs")
 
+            yield "nodes", str(nodes)
+
             if "ompthreads" in attrs:
                 yield "cpus_per_task", attrs["ompthreads"]
             elif ncpus and mpiprocs and int(mpiprocs) > 0:
@@ -238,7 +241,7 @@ def _parse_pbs_resources(  # noqa: C901
             if "mem" in attrs:
                 yield "memory", _parse_pbs_memory(attrs["mem"])
             if "mpiprocs" in attrs:
-                yield "task_count", str(nodes * int(attrs["mpiprocs"]))
+                yield "task_count", attrs["mpiprocs"]
 
 
 def _translate(scheduler: str, options: str) -> Iterator[tuple[str, object]]:

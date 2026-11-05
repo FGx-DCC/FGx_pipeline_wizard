@@ -180,6 +180,10 @@ class Directives:
             "slurm": "--mem",
         },
     )
+    nodes: str | None = field(
+        default=None,
+        metadata={"slurm": "--nodes"},
+    )
     task_count: str | None = field(
         default=None,
         metadata={
