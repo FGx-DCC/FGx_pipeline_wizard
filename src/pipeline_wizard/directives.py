@@ -224,7 +224,7 @@ class Directives:
     )
     wall_time: WallTime | None = field(
         default=None,
-        metadata={"slurm": "--time", "pbs": "-l walltime"},
+        metadata={"slurm": "--time"},
     )
 
     def _render(self, value: object, scheduler: str) -> str | None:
