@@ -1,6 +1,7 @@
 """CLI parser building for pipeline_wizard."""
 
 import argparse
+from importlib.metadata import version
 
 from pipeline_wizard.types import AbsolutePath
 
@@ -13,6 +14,12 @@ def build_parser() -> argparse.ArgumentParser:
             "A tool to generate pipeline wrappers and configuration file from "
             "toml files"
         ),
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        help="Print version information",
+        action=version("pipeline_wizard"),
     )
     parser.add_argument(
         "-d",
