@@ -174,7 +174,7 @@ def run(  # noqa: C901
     # \\
     # Write output files
     # //
-    config_builder = ConfigBuilder()
+    config_builder = ConfigBuilder(chosen_pipeline)
     run_script_builder = RunBuilder(
         args.scripts_directory, args.config_file, chosen_pipeline, start + 1
     )

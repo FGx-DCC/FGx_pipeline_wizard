@@ -46,7 +46,7 @@ class RunBuilder:
         self._contents.append("set -euo pipefail")
         self._contents.append("")
         self._contents.append("### " + "=" * 75)  # for a line length of 79
-        self._contents.append(f"### {pipeline.name}")
+        self._contents.append(f"### {pipeline.name} [{pipeline.version}]")
         self._contents.append("### " + "-" * 75)
         self._contents.append(f"### {pipeline.description}")
         self._contents.append("### " + "=" * 75)

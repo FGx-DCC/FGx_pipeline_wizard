@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from pipeline_wizard.dag import Dag
 from pipeline_wizard.prompts import TODO
 from pipeline_wizard.script import Parameter, Requirement
 
@@ -24,11 +25,20 @@ class ConfigBuilder:
 
     """
 
-    def __init__(self) -> None:
+    def __init__(self, pipeline: Dag) -> None:
         """Initialise the instance."""
         self.parameters = set()
         self.requirements = set()
         self._contents = []
+
+        self._add_header(pipeline)
+
+    def _add_header(self, pipeline: Dag) -> None:
+        """Add top of the config file that will always exist."""
+        self._contents.append(
+            f"## Config file for {pipeline.name} [{pipeline.version}]"
+        )
+        self._contents.append("")
 
     def add_parameter_value_pair(
         self, parameter: Parameter, value: str | int | bool

@@ -39,6 +39,7 @@ class Dag:
         scripts: dict[str, Script],
         script_dependencies: dict[str, set[str]],
         global_parameters: dict[str, Parameter],
+        version: str,
         executor: Executor | None,
     ) -> None:
         """Initialise the instance."""
@@ -48,6 +49,7 @@ class Dag:
         self._scripts = scripts
         self._script_dependencies = script_dependencies
         self.global_parameters = global_parameters
+        self.version = version
         self.executor = executor
 
     def title(self) -> str:
@@ -184,6 +186,7 @@ class Dag:
                 if node not in removed
             },
             global_parameters=self.global_parameters,
+            version=self.version,
             executor=self.executor,
         )
 
@@ -372,5 +375,6 @@ class Dag:
             scripts=scripts,
             script_dependencies=script_dependencies,
             global_parameters=global_parameters,
+            version=dag_data.get("version", ""),
             executor=executor,
         )
