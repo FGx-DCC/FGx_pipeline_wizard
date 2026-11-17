@@ -1,6 +1,7 @@
 """Writer for pipeline wrapper script (entry point for pipeline)."""
 
 import os
+from datetime import datetime as dt
 from pathlib import Path
 
 from pipeline_wizard.dag import Dag, Step
@@ -49,6 +50,10 @@ class RunBuilder:
         self._contents.append(f"### {pipeline.name} [{pipeline.version}]")
         self._contents.append("### " + "-" * 75)
         self._contents.append(f"### {pipeline.description}")
+        self._contents.append("### " + "-" * 75)
+        self._contents.append(
+            f"### created: {dt.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
         self._contents.append("### " + "=" * 75)
         self._contents.append("")
         self._contents.append("")

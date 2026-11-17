@@ -1,5 +1,6 @@
 """Writer for configuration file."""
 
+from datetime import datetime as dt
 from pathlib import Path
 
 from pipeline_wizard.dag import Dag
@@ -35,9 +36,15 @@ class ConfigBuilder:
 
     def _add_header(self, pipeline: Dag) -> None:
         """Add top of the config file that will always exist."""
+        self._contents.append("### " + "=" * 75)  # for a line length of 79
         self._contents.append(
             f"## Config file for {pipeline.name} [{pipeline.version}]"
         )
+        self._contents.append("### " + "-" * 75)
+        self._contents.append(
+            f"### created: {dt.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
+        self._contents.append("### " + "-" * 75)
         self._contents.append("")
 
     def add_parameter_value_pair(
