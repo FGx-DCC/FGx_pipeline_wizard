@@ -19,7 +19,8 @@ def build_parser() -> argparse.ArgumentParser:
         "-v",
         "--version",
         help="Print version information",
-        action=version("pipeline_wizard"),
+        action="version",
+        version=version("pipeline_wizard"),
     )
     parser.add_argument(
         "-d",
