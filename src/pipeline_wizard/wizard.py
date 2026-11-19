@@ -202,7 +202,7 @@ def ask(  # noqa: C901
             sys.exit(0)  # Matches REPL
 
 
-def ask_bool(message: str) -> bool:
+def ask_bool(message: str, default: bool | None = None) -> bool:
     """Ask, but coerce to bool.
 
     This is required as coercing 'False' to `bool` gives you `True`.
@@ -211,7 +211,13 @@ def ask_bool(message: str) -> bool:
     truthy = {"yes", "y", "yep", "true", "1", "yes please"}
     falsey = {"no", "n", "nope", "false", "0", "no thank you", "no thanks"}
     while True:
-        answer = ask(message, return_type=str)
+        if default is None:
+            answer = ask(message, return_type=str)
+        else:
+            # Ask doesn't allow for Boolean output, so we convert to a
+            # truthy/falsey value arbitrarily
+            converted_default = "y" if default else "n"
+            answer = ask(message, return_type=str, default=converted_default)
         if answer.lower() in truthy:
             return True
         if answer.lower() in falsey:
